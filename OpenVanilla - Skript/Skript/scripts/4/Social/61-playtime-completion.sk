@@ -1,0 +1,29 @@
+import:
+    org.bukkit.Bukkit
+    
+
+function playtime_updateOfflinePlayersCompletion():
+    set {_a} to Bukkit.getOfflinePlayers()
+    set {_a::*} to "%{_a}%" split at ", "
+    delete {%script%::offlineplayers::completions::*}
+    set {%script%::offlineplayers::completions::*} to {_a::*}
+
+
+on load:
+    $ thread
+    playtime_updateOfflinePlayersCompletion()
+
+
+every 10 minutes:
+    $ thread
+    playtime_updateOfflinePlayersCompletion()
+
+
+on tab completer for "playtime":
+    if argument at 2 is not set:
+        if player has permission "playtime.suggestofflineplayers":
+            loop {%script%::offlineplayers::completions::*}:
+                add "%loop-value%" to completions
+        else:
+            loop all players:
+                add "%loop-player%" to completions

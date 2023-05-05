@@ -1,0 +1,29 @@
+import:
+    org.bukkit.Bukkit
+
+
+function recordConnectionData(p: player):
+    set {connectionbasics/%{_p}'s ip%::player::lastconnectedwith} to {_p}'s uuid
+    if {connectionbasics/%{_p}'s ip%::player::connectedwith::*} doesn't contain {_p}'s uuid:
+        add {_p}'s uuid to {connectionbasics/%{_p}'s ip%::player::connectedwith::*}
+    set {connectionbasics/%{_p}'s ip%::updated} to unix timestamp of now
+    if {connectionbasics/%{_p}'s ip%::created} is not set:
+        set {connectionbasics/%{_p}'s ip%::created} to unix timestamp of now
+
+
+function getConnectionsList() :: texts:
+    if Bukkit.isPrimaryThread() is false:
+        set {_dir} to "./plugins/Skript-data/connectionbasics/"
+        if directory path {_dir} is not missing:
+            loop all files of dir path {_dir}:
+                set {_path} to "%loop-value%"
+                set {_extention} to extension of loop-value
+                set {_address} to file name of loop-value
+                set {_address} to first (length of {_address} - (length of {_extention} + 1)) characters of {_address}
+                add {_address} to {_ret::*}
+                delete {_path}
+                delete {_extention}
+                delete {_address}
+            return {_ret::*}
+    else:
+        log "Function can't be executed in main thread due to security reason!"

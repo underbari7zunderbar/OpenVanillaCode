@@ -1,0 +1,6 @@
+on load:
+    set {_path1} to "./plugins/Skript/map/"
+    if dir path {_path1} is missing:
+        create dir path {_path1}
+
+    copy all files in dir path "./plugins/Skript/map/" to dir path "./world/data/"

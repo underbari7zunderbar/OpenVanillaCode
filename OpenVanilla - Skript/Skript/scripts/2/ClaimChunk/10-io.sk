@@ -1,0 +1,60 @@
+function claimchunk_io_loadData():
+    if file path "./plugins/Skript-data/claimchunk/players.json" is not missing:
+        copy json arrayToString(content of file path "./plugins/Skript-data/claimchunk/players.json") to {claimchunk/players::*}
+    if file path "./plugins/Skript-data/claimchunk/players-trust.json" is not missing:
+        copy json arrayToString(content of file path "./plugins/Skript-data/claimchunk/players-trust.json") to {claimchunk/players-trust::*}
+    if file path "./plugins/Skript-data/claimchunk/chunks.json" is not missing:
+        copy json arrayToString(content of file path "./plugins/Skript-data/claimchunk/chunks.json") to {claimchunk/chunks::*}
+
+
+function claimchunk_io_saveData():
+    set {_path} to "./plugins/Skript-data/claimchunk/players.json"
+    set {_content} to json form of {claimchunk/players::*}
+    if file {_path} doesn't exist:
+        create file path {_path} with text {_content}
+    else:
+        set content of file path {_path} to {_content}
+    delete {_path}
+    delete {_content}
+
+    set {_path} to "./plugins/Skript-data/claimchunk/players-trust.json"
+    set {_content} to json form of {claimchunk/players-trust::*}
+    if file {_path} doesn't exist:
+        create file path {_path} with text {_content}
+    else:
+        set content of file path {_path} to {_content}
+    delete {_path}
+    delete {_content}
+
+    loop {claimchunk/chunks::*}:
+        set {claimchunk/chunks::%loop-index%::is_not_a_list} to true
+    set {_path} to "./plugins/Skript-data/claimchunk/chunks.json"
+    set {_content} to json form of {claimchunk/chunks::*}
+    if file {_path} doesn't exist:
+        create file path {_path} with text {_content}
+    else:
+        set content of file path {_path} to {_content}
+    delete {_path}
+    delete {_content}
+
+
+on load:
+    set {_path1} to "./plugins/Skript-data/claimchunk/"
+    if dir path {_path1} is missing:
+        create dir path {_path1}
+
+
+on load:
+    claimchunk_io_loadData()
+
+
+every 1 hours:
+    $ thread
+    claimchunk_io_saveData()
+
+
+on unload:
+    claimchunk_io_saveData()
+    delete {claimchunk/players::*}
+    delete {claimchunk/players-trust::*}
+    delete {claimchunk/chunks::*}

@@ -1,0 +1,32 @@
+function arrayToList(texts: texts, mode: integer, fg: text, bg: text) :: text:
+    if {_mode} is 0:
+        loop {_texts::*}:
+            if {_ret} is not set:
+                set {_ret} to "%formatted {_fg}%%loop-value%"
+            else:
+                set {_ret} to "%{_ret}%%formatted {_bg}%,%formatted {_fg}% %loop-value%"
+    else if {_mode} is 1:
+        loop {_texts::*}:
+            if {_ret} is not set:
+                set {_ret} to "%formatted {_bg}%-%formatted {_fg}% %loop-value%"
+            else:
+                set {_ret} to "%{_ret}%%nl%%formatted {_bg}%-%formatted {_fg}% %loop-value%"
+    return {_ret}
+
+
+function arrayToString(texts: texts) :: text:
+    loop {_texts::*}:
+        if {_ret} is not set:
+            set {_ret} to loop-value
+        else:
+            set {_ret} to "%{_ret}%%nl%%loop-value%"
+    return {_ret}
+
+
+function arrayToStringWithoutNewLine(texts: texts) :: text:
+    loop {_texts::*}:
+        if {_ret} is not set:
+            set {_ret} to loop-value
+        else:
+            set {_ret} to "%{_ret}%%loop-value%"
+    return {_ret}

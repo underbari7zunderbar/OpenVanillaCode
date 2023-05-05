@@ -1,0 +1,35 @@
+command /seen [<text>] [<text>]:
+    usage: <yellow>사용법: /seen [플레이어]
+    permission: social.seen
+    trigger:
+        if arg 2 is not set:
+            if arg 1 is set:
+                $ thread
+                set {_target} to arg 1 parsed as offline player
+            else:
+                set {_target} to command sender
+
+            if {_target} is online:
+                set {_continue} to true
+            else if {_target} has played before:
+                set {_continue} to true
+            else:
+                send "<light red>플레이어를 찾을 수 없습니다" to command sender
+            {_continue} is true
+
+            set {_namespace} to "<suggest command:/tell %{_target}% ><insertion:%{_target}%>%{_target}%<reset>"
+            set {_second} to unix timestamp of now - {_target}.getLastLogin() / 1000
+            set {_string} to secondToTimespanString(rounded {_second}, 0, 2)
+
+            if {_target} is sender:
+                send formatted "접속 시간은 %{_string}% 입니다" to command sender
+            else:
+                if {_target} is online:
+                    send formatted "%formatted {_namespace}%은(는) %{_string}% 전부터 온라인 상태였습니다" to command sender
+                else:
+                    if {_target} is not banned:
+                        send formatted "%formatted {_namespace}%은(는) %{_string}% 전부터 오프라인 상태였습니다" to command sender
+                    else:
+                        send formatted "<yellow>%formatted {_namespace}%<yellow>은(는) 관리자에 의해 서버에서 차단된 플레이어입니다" to command sender
+        else:
+            send "<light red>명령어를 실행하지 못했습니다. 매개 변수가 너무 많습니다" to command sender

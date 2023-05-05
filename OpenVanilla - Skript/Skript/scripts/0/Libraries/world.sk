@@ -1,0 +1,16 @@
+import:
+    org.bukkit.generator.WorldInfo
+    org.bukkit.World
+
+
+function worldToEnvironmentName(world: world) :: text:
+    set {_env} to {_world}.getEnvironment()
+    if {_env} is World.Environment.NORMAL:
+        set {_ret} to "overworld"
+    else if {_env} is World.Environment.NETHER:
+        set {_ret} to "the_nether"
+    else if {_env} is World.Environment.THE_END:
+        set {_ret} to "the_end"
+    else:
+        set {_ret} to {_world}
+    return {_ret}

@@ -1,0 +1,19 @@
+on join:
+    set {_ip} to player's ip
+    loadConnectionBasics({_ip})
+    recordConnectionData(player)
+    saveConnectionBasics({_ip})
+
+
+on quit:
+    set {_ip} to player's ip
+    recordConnectionData(player)
+    saveConnectionBasics({_ip})
+    wait a tick
+    if all players' ip doesn't contain {_ip}:
+        unloadConnectionBasics({_ip})
+
+
+every 10 minutes:
+    $ thread
+    saveAllConnectionsBasics()

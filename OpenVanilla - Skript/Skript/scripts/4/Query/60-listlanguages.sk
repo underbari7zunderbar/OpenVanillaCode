@@ -1,0 +1,19 @@
+command /listlanguages [<text>]:
+    permission: query.listlanguages
+    trigger:
+        loop all players:
+            set {_locale} to "%loop-player.locale()%"
+            set {_c::%{_locale}%} to true
+            add loop-player to {_c::%{_locale}%::*}
+            delete {_locale}
+
+        loop {_c::*}:
+            loop {_c::%loop-index%::*}:
+                add "%loop-value-2%" to {_d::*}
+            set {_d::*} to sorted {_d::*}
+            set {_list::%loop-index%} to arrayToList({_d::*}, 0, "<reset>", "<gray>")
+            delete {_d::*}
+        
+        send "<light blue>Query result of all players (%player count%):" to sender
+        loop {_list::*}:
+            send " <gray>%loop-index% (%size of {_c::%loop-index%::*}%):<reset> %loop-value%"

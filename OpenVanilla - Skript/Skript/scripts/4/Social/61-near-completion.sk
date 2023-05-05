@@ -1,0 +1,13 @@
+options:
+    max_range: 2500
+
+
+on tab completer for "near":
+    if argument at 2 is not set:
+        add "{@max_range}" to completions
+        add "%{social::localrange}%" to completions
+    if player has permission "social.near.others":
+        argument at 2 is set
+        argument at 3 is not set
+        loop all players:
+            add "%loop-player%" to completions

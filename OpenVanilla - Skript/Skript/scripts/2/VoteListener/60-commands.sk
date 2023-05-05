@@ -1,0 +1,38 @@
+command /reloadvotelistener:
+    permission: votelistener.debug
+    trigger:
+        send "<light red>Vote reward policy is disabled" to sender
+        stop
+        
+        send "Reloading!" to sender
+        reloadVoteListenerConfiguration()
+
+
+command /vote [<text>]:
+    aliases: /추천
+    permission: votelistener.link
+    executable by: players
+    trigger:
+        send formatted "추천 바로가기를 찾으시나요? <##92d050><tooltip:클릭하여 이동하기><link:https://minelist.kr/servers/openvanilla.net>[마인리스트 (클릭)]<reset>, <##63cc80><tooltip:클릭하여 이동하기><link:https://mine.page/server/openvanilla.net>[마인페이지 (클릭)]<reset> 여기 있습니다!" to command sender
+        #send "<light blue>팁: 추천 시 보상을 받을 수 있습니다. 추천은 매일 한 번 가능합니다!" to command sender
+
+
+command /viewvoterewards [<text>]:
+    executable by: players
+    permission: votelistener.debug
+    trigger:
+        send "<light red>Vote reward policy is disabled" to sender
+        stop
+
+        set {_player} to sender
+        set {_items::*} to {votelistener::rewards::*}
+        open chest with 6 rows named "Vote Rewards (%size of {_items::*}%)" to {_player}
+        
+        set {_s0} to slot 0 of {_player}'s inventory
+        set {_index} to 0
+        loop size of {_items::*} times:
+            clear slot 0 of {_player}'s inventory
+            execute console command "/item replace entity %{_player}'s name% hotbar.0 with %{_items::%loop-value%}%"
+            set slot {_index} of {_player}'s current inventory to slot 0 of {_player}'s inventory
+            add 1 to {_index}
+        set slot 0 of {_player}'s inventory to {_s0}

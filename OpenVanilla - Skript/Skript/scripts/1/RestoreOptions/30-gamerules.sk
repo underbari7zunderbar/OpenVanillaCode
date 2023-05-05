@@ -1,0 +1,29 @@
+import:
+    org.bukkit.Bukkit
+    org.bukkit.GameRule
+
+
+on load:
+    wait a tick
+    loop all worlds:
+        set {_world} to loop-world
+        {_world}.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false)
+        {_world}.setGameRule(GameRule.SHOW_DEATH_MESSAGES, false)
+        {_world}.setGameRule(GameRule.PLAYERS_SLEEPING_PERCENTAGE, 10)
+        {_world}.setGameRule(GameRule.SPAWN_RADIUS, 25000)
+        delete {_world}
+
+    set {_world} to world("world")
+    if {_world} is set:
+        {_world}.setGameRule(GameRule.KEEP_INVENTORY, true)
+    delete {_world}
+
+    set {_world} to world("world_nether")
+    if {_world} is set:
+        {_world}.setGameRule(GameRule.KEEP_INVENTORY, false)
+    delete {_world}
+
+    set {_world} to world("world_the_end")
+    if {_world} is set:
+        {_world}.setGameRule(GameRule.KEEP_INVENTORY, false)
+    delete {_world}

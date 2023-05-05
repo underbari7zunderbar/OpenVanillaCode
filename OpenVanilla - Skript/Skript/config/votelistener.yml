@@ -1,0 +1,39 @@
+rewards:
+- iron_ingot 32
+- gold_ingot 32
+- diamond 10
+- emerald 10
+- netherite_ingot 2
+
+- barrier 16
+- structure_void 16
+- light 16
+
+- apple{display:{Name:'{"text":"그냥 사과","italic":false}'}} 5
+- golden_apple{display:{Name:'{"text":"잘 익은 사과","italic":false}'}}
+- fishing_rod{display:{Name:'{"text":"사람을 낚는 낚싯대","italic":false}'},Enchantments:[{id:lure,lvl:3}]}
+- shulker_shell{display:{Name:'{"text":"껍데기","italic":false}'}}
+- nautilus_shell{display:{Name:'{"text":"껍데기","italic":false}'}}
+- golden_pickaxe{display:{Name:'{"text":"동화 속 깐부가 잃어버린 곡괭이","italic":false}'}}
+- diamond_pickaxe{display:{Name:'{"text":"동화 속 깐부가 안 잃어버린 곡괭이","italic":false}'}}
+- rotten_flesh{display:{Name:'{"text":"묵은지","italic":false}'}}
+- bamboo{display:{Name:'{"text":"죽창","italic":false}'}}
+- potato{display:{Name:'{"text":"생감자","italic":false}'}}
+- poisonous_potato{display:{Name:'{"text":"신선한 독감자","italic":false}'}}
+- potion{Potion:poison,display:{Name:'{"text":"감자즙","italic":false}'}}
+- cookie{display:{Name:'{"text":"완전한 의지의 굳건한 비스켓","italic":false}'}}
+- flower_pot{display:{Name:'{"text":"욕망의 항아리","italic":false}'}}
+- brick{display:{Name:'{"text":"추천 보상","italic":false}'}} 
+- white_bed{display:{Name:'{"text":"흔들리지 않는 편안함","italic":false}'}}
+- white_bed{display:{Name:'[{"text":"\\"침대는 가구가 아니다\\" 침대는","italic":false}]',Lore:['[{"translate":"itemGroup.decorations","italic":false,"color":"blue"},{"text":" 입니다","color":"gray"}]']}} 1
+- dried_kelp{display:{Name:'{"text":"오뚜기 옛날 다시마 200g","italic":false}'}}
+- grass_block{display:{Name:'{"text":"반짝이는 흙","italic":false,"color":"aqua"}'},Enchantments:[{id:mending,lvl:1}],HideFlags:1}
+- stone{display:{Name:'{"text":"반짝이는 돌","italic":false,"color":"aqua"}'},Enchantments:[{id:mending,lvl:1}],HideFlags:1}
+- carved_pumpkin{display:{Name:'{"translate":"item.minecraft.netherite_helmet","italic":false,"color":"aqua"}'},Enchantments:[{id:binding_curse,lvl:1}],HideFlags:1}
+- cooked_porkchop{display:{Name:'{"text":"앙냥냥","italic":false}'}}
+- brick{display:{Name:'{"translate":"item.minecraft.copper_ingot","italic":false}'}} 32
+- emerald{display:{Name:'{"text":"다이아몬드 (주민 에디션)","italic":false}'}} 5
+- string{display:{Name:'{"text":"백조","italic":false}'}}
+- iron_ingot{display:{Name:'{"text":"잘 닦아서 반짝거리는 네더라이트 주괴","italic":false}'}} 2
+- snowball{display:{Name:'{"text":"투척용 눈사람","italic":false}'}} 2
+- birch_door{display:{Name:'{"text":"어디로든 문","italic":false}'},Enchantments:[{id:mending,lvl:1}],HideFlags:1} 1

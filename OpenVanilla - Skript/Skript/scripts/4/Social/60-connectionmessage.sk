@@ -1,0 +1,32 @@
+command /connectionmessage [<text>]:
+    usage: <yellow>사용법: /connectionmessage [enable|disable]
+    executable by: players
+    permission: social.connectionmessage
+    trigger:
+        if {playersettings-players/%player's uuid%::send-join-quit-message} is set:
+            set {_mode} to {playersettings-players/%player's uuid%::send-join-quit-message}
+        else:
+            set {_mode} to {playersettings::default::send-join-quit-message}
+
+        if arg 1 is not set:
+            if {_mode} is true:
+                send "접속 및 퇴장 메시지를 전송하도록 설정되어 있습니다"
+            else:
+                send "접속 및 퇴장 메시지를 전송하지 않도록 설정되어 있습니다"
+                
+        else:
+            if arg 1 is "enable":
+                set {_setmode} to true
+                set {_message} to "이제 접속 및 퇴장 시 메시지를 전송합니다"
+            else if arg 1 is "disable":
+                set {_setmode} to false
+                set {_message} to "이제 접속 및 퇴장 시 메시지를 전송하지 않습니다"
+
+            if {_setmode} is set:
+                if {_mode} is not {_setmode}:
+                    set {playersettings-players/%player's uuid%::send-join-quit-message} to {_setmode}
+                    send {_message} to command sender
+                else:
+                    send "<light red>변경 사항이 없습니다. 이미 해당 상태입니다" to command sender
+            else:
+                send "<light red>명령어를 실행하지 못했습니다. 유효하지 않은 매개 변수가 포함되어 있습니다" to command sender

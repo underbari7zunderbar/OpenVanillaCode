@@ -1,0 +1,12 @@
+import:
+    org.bukkit.Bukkit
+    org.bukkit.Difficulty
+
+
+on load:
+    wait a tick
+    loop all worlds:
+        set {_world} to loop-world
+        {_world}.setDifficulty(Difficulty.NORMAL)
+        {_world}.setSpawnLocation(0, 64, 0)
+        delete {_world}

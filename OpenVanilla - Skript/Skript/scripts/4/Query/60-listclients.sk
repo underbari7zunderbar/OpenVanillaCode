@@ -1,0 +1,18 @@
+command /listclients [<text>]:
+    permission: query.listclients
+    trigger:
+        loop all players:
+            set {_brand} to "%loop-player.getClientBrandName()%"
+            set {_c::%{_brand}%} to true
+            add loop-player to {_c::%{_brand}%::*}
+
+        loop {_c::*}:
+            loop {_c::%loop-index%::*}:
+                add "%loop-value-2%" to {_d::*}
+            set {_d::*} to sorted {_d::*}
+            set {_list::%loop-index%} to arrayToList({_d::*}, 0, "<reset>", "<gray>")
+            delete {_d::*}
+        
+        send "<lime>Query result of all players (%player count%):" to sender
+        loop {_list::*}:
+            send " <gray>%loop-index% (%size of {_c::%loop-index%::*}%):<reset> %loop-value%"

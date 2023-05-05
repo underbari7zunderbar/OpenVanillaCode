@@ -1,0 +1,25 @@
+on join:
+    set {_uuid} to player's uuid
+    loadPlayerBasics({_uuid})
+    releasePlayerGeneralData(player)
+    recordPlayerData(player)
+    savePlayerBasics({_uuid})
+
+
+on quit:
+    set {_uuid} to player's uuid
+    recordPlayerData(player)
+    wait a tick
+    player is offline
+    savePlayerBasics({_uuid})
+    unloadPlayerBasics({_uuid})
+
+
+every 10 minutes:
+    $ thread
+    saveAllPlayersBasics()
+
+
+every 10 minutes:
+    $ thread
+    recordAllPlayersData()

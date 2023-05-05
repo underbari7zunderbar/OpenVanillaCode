@@ -1,0 +1,12 @@
+on load:
+    set {_default} to "./plugins/Skript/favicon/default.png"
+    set {_fallback} to "./plugins/Skript/favicon/fallback.png"
+
+    if file path {_fallback} is not missing:
+        copy file path {_fallback} to file path "server-icon.png"
+
+    else if file path {_default} is not missing:
+        copy file path {_default} to file path "server-icon.png"
+
+    else:
+        log "<red>Icon files are not exist"

@@ -1,0 +1,6 @@
+import:
+    me.theminecoder.minecraft.serverbrand.ServerBrandAPI
+
+
+on load:
+    ServerBrandAPI.getInstance().setBrand({branding::address})

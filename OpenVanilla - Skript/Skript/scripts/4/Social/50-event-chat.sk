@@ -1,0 +1,18 @@
+import:
+    io.papermc.paper.event.player.AsyncChatEvent
+    net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
+
+
+on AsyncChatEvent:
+    event.setCancelled(true)
+
+    set {_player} to event.getPlayer()
+
+    if {playersettings-players/%{_player}'s uuid%::chatmode} is set:
+        set {_mode} to {playersettings-players/%{_player}'s uuid%::chatmode}
+    else:
+        set {_mode} to {playersettings::default::chatmode}
+
+    set {_message} to PlainTextComponentSerializer.plainText().serialize(event.message())
+
+    sendChat({_player}, {_mode}, {_message})

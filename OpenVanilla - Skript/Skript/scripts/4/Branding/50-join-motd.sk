@@ -1,0 +1,32 @@
+options:
+    delaySec: 3
+
+
+on join:
+    wait a ticks
+    set {_uuid} to player's uuid
+    
+    if {motd::%{_uuid}%::sent} is not true:
+        set {motd::%{_uuid}%::sent} to true
+        set {_sendmessage} to true
+
+        if {playersettings-players/%{_uuid}%::showmotd} is set:
+            set {_sendmessage} to {playersettings-players/%{_uuid}%::showmotd}
+        else:
+            set {_sendmessage} to {playersettings::default::showmotd}
+
+        {_sendmessage} is true
+
+        wait a tick
+        sendMotd(player)
+
+
+on quit:
+    set {_uuid} to player's uuid
+    
+    loop round(tps from last 1m * {@delaySec}) times:
+        wait a tick
+        if player is online:
+            stop
+
+    delete {motd::%{_uuid}%::sent}

@@ -1,0 +1,66 @@
+import:
+    com.destroystokyo.paper.ClientOption
+    net.kyori.adventure.text.Component
+    net.kyori.adventure.text.format.NamedTextColor
+
+
+command /chatmode [<text>]:
+    aliases: /c, /channel
+    usage: <yellow>사용법: /chatmode [general|local]
+    executable by: players
+    permission: social.chat
+    trigger:
+        if sender.getClientOption(ClientOption.CHAT_VISIBILITY) is ClientOption.ChatVisibility.FULL:
+            if {playersettings-players/%player's uuid%::chatmode} is set:
+                set {_mode} to {playersettings-players/%player's uuid%::chatmode}
+            else:
+                set {_mode} to {playersettings::default::chatmode}
+
+            set {_channelname::0} to "<suggest command:/channel global><tooltip:클릭하여 대화 모드 변경><gray>[전체]<reset>"
+            set {_channelname::1} to "<suggest command:/channel local><tooltip:클릭하여 대화 모드 변경><green>[지역]<reset>"
+
+            if arg 1 is not set:
+                send "현재 기본 대화 모드는 %formatted {_channelname::%{_mode}%}% 입니다"
+
+            else if arg 1 is "global":
+                set {_setmode} to 0
+
+            else if arg 1 is "local":
+                set {_setmode} to 1
+
+            else:
+                send "<light red>명령어를 실행하지 못했습니다. 유효하지 않은 매개 변수가 포함되어 있습니다" to command sender
+
+            if {_setmode} is set:
+                if {_mode} is not {_setmode}:
+                    set {playersettings-players/%player's uuid%::chatmode} to {_setmode}
+                    send "기본 대화 모드를 %formatted {_channelname::%{_setmode}%}%으(로) 변경했습니다" to command sender
+                else:
+                    send "<light red>변경 사항이 없습니다. 이미 해당 대화 모드가 기본값입니다" to command sender
+        else:
+            set {_component} to Component.translatable("chat.disabled.options").color(NamedTextColor.RED)
+            sender.sendMessage({_component})
+
+
+command /global [<text>]:
+    executable by: players
+    aliases: /t, /all
+    permission: social.chat
+    trigger:
+        if arg 1 is set:
+            $ thread
+            sendChat(player, 0, arg 1)
+        else:
+            execute player command "/channel global"
+
+
+command /local [<text>]:
+    executable by: players
+    aliases: /r
+    permission: social.chat
+    trigger:
+        if arg 1 is set:
+            $ thread
+            sendChat(player, 1, arg 1)
+        else:
+            execute player command "/channel local"

@@ -1,0 +1,525 @@
+import:
+    org.bukkit.Bukkit
+    org.bukkit.Material
+
+
+function claimChunk(b: text, ck: integer, uuid: text):
+    set {claimchunk/chunks::%{_b}%} to true
+    set {claimchunk/chunks::%{_b}%::%{_ck}%::owner} to {_uuid}
+    set {claimchunk/players::%{_uuid}%::owned::%{_b}%} to true
+    add {_ck} to {claimchunk/players::%{_uuid}%::owned::%{_b}%::*} if {claimchunk/players::%{_uuid}%::owned::%{_b}%::*} doesn't contain {_c}
+
+
+function deleteClaim(b: text, ck: integer):
+    remove all {_ck} from {claimchunk/players::%{claimchunk/chunks::%{_b}%::%{_ck}%::owner}%::owned::%{_b}%::*}
+    delete {claimchunk/chunks::%{_b}%::%{_ck}%::*}
+    delete {claimchunk/chunks::%{_b}%::%{_ck}%}
+
+
+command /claim [<text>] [<text>]:
+    usage: <yellow>사용법: /claim [target]
+    executable by: players
+    permission: claimchunk.claim
+    trigger:
+        set {_uuid} to sender's uuid
+        if arg 2 is not set:
+            if arg 1 is not set:
+                set {_targetChunk} to player's chunk
+            else if arg 1 is "target":
+                set {_targetChunk} to player's target block's chunk
+            else:
+                send "<light red>명령어를 실행하지 못했습니다. 유효하지 않은 매개 변수가 포함되어 있습니다" to sender
+                stop
+        else:
+            send "<light red>명령어를 실행하지 못했습니다. 매개 변수가 너무 많습니다" to sender
+            stop
+
+        if {_targetChunk} is set:
+            set {_c} to {_targetChunk}
+            set {_cs} to {_targetChunk}.getChunkSnapshot()
+            set {_b} to "%player's world%"
+            set {_ck} to {_c}.getChunkKey()
+            if {claimchunk/chunks::%{_b}%::%{_ck}%::owner} is not set:
+                if getCurrentClaimCount(sender) is less than getMaxClaimCount(sender):
+                    create new section stored in {_section}:
+                        return chunkIsClaimable({_c})
+                    run section {_section} async and store result in {_valid} and wait
+                    if {_valid} is true:
+                        # claim
+                        claimChunk({_b}, {_ck}, {_uuid})
+                        send action bar "<lime>지역을 보호했습니다" to sender
+                        play sound "block.iron_door.close" in player category with volume 1 and pitch 2 for sender
+                        makeChunkGridBlock({_c}, emerald block, player)
+                    else:
+                        send action bar "<light red>이 지역은 보호할 수 없는 지역입니다" to sender
+                        play sound "entity.villager.no" in player category with volume 1 and pitch 1 for sender
+                        makeChunkGridBlock({_c}, redstone block, player)
+                else:
+                    send action bar "<light red>최대 보호 가능 지역 개수를 초과했습니다" to sender
+                    play sound "entity.villager.no" in player category with volume 1 and pitch 1 for sender
+            else:
+                if {claimchunk/chunks::%{_b}%::%{_ck}%::owner} is sender's uuid:
+                    send action bar "<light red>변경 사항이 없습니다. 이 지역은 이미 보호되어 있습니다" to sender
+                    play sound "entity.villager.no" in player category with volume 1 and pitch 1 for sender
+                    makeChunkGridBlock({_c}, diamond block, player)
+                else:
+                    if chunkIsExpired({_c}) is true:
+                        # claim
+                        deleteClaim({_b}, {_ck})
+                        claimChunk({_b}, {_ck}, {_uuid})
+                        send action bar "<lime>지역을 보호했습니다" to sender
+                        play sound "block.iron_door.close" in player category with volume 1 and pitch 2 for sender
+                        makeChunkGridBlock({_c}, emerald block, player)
+                    else:
+                        send action bar "<light red>이 지역은 다른 플레이어의 지역입니다" to sender
+                        play sound "entity.villager.no" in player category with volume 1 and pitch 1 for sender
+                        makeChunkGridBlock({_c}, redstone block, player)
+        else:
+            send action bar "<light red>지역을 보호할 수 없습니다. 대상 청크가 지정되지 않았습니다" to sender
+            play sound "entity.villager.no" in player category with volume 1 and pitch 1 for sender
+
+
+command /abandonclaim [<text>] [<text>]:
+    usage: <yellow>사용법: /abandonclaim [target]
+    executable by: players
+    permission: claimchunk.claim
+    trigger:
+        if arg 2 is not set:
+            if arg 1 is not set:
+                $ thread
+                set {_targetChunk} to player's chunk
+            else if arg 1 is "target":
+                $ thread
+                set {_targetChunk} to player's target block's chunk
+                if the target block of the player is not set:
+                    set {_continue} to false
+            else:
+                send "<light red>명령어를 실행하지 못했습니다. 유효하지 않은 매개 변수가 포함되어 있습니다" to sender
+                stop
+        else:
+            send "<light red>명령어를 실행하지 못했습니다. 매개 변수가 너무 많습니다" to sender
+            stop
+
+        if {_continue} is not false:
+            set {_b} to "%player's world%"
+            set {_c} to {_targetChunk}
+            set {_ck} to {_c}.getChunkKey()
+            if {claimchunk/chunks::%{_b}%::%{_ck}%::owner} is set:
+                if {claimchunk/chunks::%{_b}%::%{_ck}%::owner} is sender's uuid:
+                    deleteClaim({_b}, {_ck})
+                    send action bar "<yellow>지역을 보호 해제했습니다" to sender
+                    play sound "block.chain.break" in player category with volume 1 and pitch 1 for sender
+                    makeChunkGridBlock({_c}, gold block, player)
+                else:
+                    if chunkIsExpired({_c}) is true:
+                        deleteClaim({_b}, {_ck})
+                        send action bar "<yellow>지역을 보호 해제했습니다" to sender
+                        play sound "block.chain.break" in player category with volume 1 and pitch 1 for sender
+                        makeChunkGridBlock({_c}, gold block, player)
+                    else:
+                        send action bar "<light red>이 지역은 다른 플레이어의 지역입니다" to sender
+                        play sound "entity.villager.no" in player category with volume 1 and pitch 1 for sender
+                        makeChunkGridBlock({_c}, redstone block, player)
+            else:
+                send action bar "<light red>변경 사항이 없습니다. 이 지역은 보호된 지역이 아닙니다" to sender
+                play sound "entity.villager.no" in player category with volume 1 and pitch 1 for sender
+                makeChunkGridBlock({_c}, iron block, player)
+        else:
+            send action bar "<light red>지역을 보호 해제할 수 없습니다. 대상 청크가 지정되지 않았습니다" to sender
+            play sound "entity.villager.no" in player category with volume 1 and pitch 1 for sender
+
+
+command /deleteclaim [<text>] [<text>]:
+    usage: <yellow>사용법: /deleteclaim [target]
+    executable by: players
+    permission: claimchunk.deleteclaims
+    trigger:
+        if arg 2 is not set:
+            if arg 1 is not set:
+                $ thread
+                set {_targetChunk} to player's chunk
+            else if arg 1 is "target":
+                $ thread
+                set {_targetChunk} to player's target block's chunk
+                if the target block of the player is not set:
+                    set {_continue} to false
+            else:
+                send "<light red>명령어를 실행하지 못했습니다. 유효하지 않은 매개 변수가 포함되어 있습니다" to sender
+                stop
+        else:
+            send "<light red>명령어를 실행하지 못했습니다. 매개 변수가 너무 많습니다" to sender
+            stop
+
+        if {_continue} is not false:
+            set {_b} to "%player's world%"
+            set {_c} to {_targetChunk}
+            set {_ck} to {_c}.getChunkKey()
+            if {claimchunk/chunks::%{_b}%::%{_ck}%::owner} is set:
+                deleteClaim({_b}, {_ck})
+                send action bar "<yellow>지역을 보호 해제했습니다" to sender
+                play sound "block.chain.break" in player category with volume 1 and pitch 1 for sender
+                makeChunkGridBlock({_c}, gold block, player)
+            else:
+                send action bar "<light red>변경 사항이 없습니다. 이 지역은 보호된 지역이 아닙니다" to sender
+                play sound "entity.villager.no" in player category with volume 1 and pitch 1 for sender
+                makeChunkGridBlock({_c}, iron block, player)
+        else:
+            send action bar "<light red>지역을 보호 해제할 수 없습니다. 대상 청크가 지정되지 않았습니다" to sender
+            play sound "entity.villager.no" in player category with volume 1 and pitch 1 for sender
+
+
+command /abandonallclaims [<text>] [<text>]:
+    usage: <yellow>사용법: /abandonallclaims [confirm]
+    executable by: players
+    permission: claimchunk.claim
+    trigger:
+        if arg 2 is not set:
+            if arg 1 is not set:
+                send "<yellow>정말로 모든 지역을 보호 해제하시겠습니까? 계속하려면 /abandonallclaims confirm 명령어를 입력하세요" to sender
+            else if arg 1 is "confirm":
+                if getCurrentClaimCount(sender) is greater than 0:
+
+                    # work ------------------------------------------------------------ start #
+
+                    set {_count} to 0
+                    loop {claimchunk/players::%sender's uuid%::owned::*}:
+                        loop {claimchunk/players::%sender's uuid%::owned::%loop-index%::*}:
+                            add 1 to {_count}
+                            deleteClaim(loop-index-1, loop-value-2)
+
+                    send "지역 %{_count}%개를 보호 해제했습니다" to sender
+
+                    # work -------------------------------------------------------------- end #
+
+                else:
+                    send "<light red>변경 사항이 없습니다. 보호한 지역이 없습니다" to sender
+
+            else:
+                send "<light red>명령어를 실행하지 못했습니다. 유효하지 않은 매개 변수가 포함되어 있습니다" to command sender
+        else:
+            send "<light red>명령어를 실행하지 못했습니다. 매개 변수가 너무 많습니다" to sender
+
+
+command /deleteallclaims <text> [<text>]:
+    usage: <yellow>사용법: /deleteallclaims <플레이어>
+    permission: claimchunk.deleteclaims
+    trigger:
+        if arg 2 is not set:
+            $ thread
+            set {_valid} to isValidUsername(arg 1)
+            if {_valid} is true:
+                $ thread
+                set {_target} to arg 1 parsed as offline player
+                set {_uuid} to {_target}'s uuid
+                set {_targetNamespace} to "<suggest command:/tell %{_target}% ><insertion:%{_target}%>%{_target}%"
+                if getCurrentClaimCount({_target}) is greater than 0:
+                    
+                    # work ------------------------------------------------------------ start #
+
+                    set {_count} to 0
+                    loop {claimchunk/players::%{_uuid}%::owned::*}:
+                        loop {claimchunk/players::%{_uuid}%::owned::%loop-index%::*}:
+                            add 1 to {_count}
+                            deleteClaim(loop-index-1, loop-value-2)
+
+                    send "%formatted {_targetNamespace}%의 지역 %{_count}%개를 보호 해제했습니다" to sender
+
+                    # work -------------------------------------------------------------- end #
+
+                else:
+                    send "<light red>해당 플레이어가 보호한 지역이 없습니다" to sender
+            else:
+                send "<light red>유효하지 않은 플레이어입니다" to sender
+        else:
+            send "<light red>명령어를 실행하지 못했습니다. 매개 변수가 너무 많습니다" to sender
+
+
+command /claimlist [<text>] [<text>]:
+    executable by: players
+    permission: claimchunk.claim
+    trigger:
+        set {_target} to sender
+        if arg 1 is set:
+            if player has permission "claimchunk.claimlist.others":
+                $ thread
+                set {_valid} to isValidUsername(arg 1)
+                if {_valid} is true:
+                    $ thread
+                    set {_target} to arg 1 parsed as offline player
+                else:
+                    send "<light red>유효하지 않은 플레이어입니다" to sender
+                    stop
+            if player has permission "teleportplus.tpchunk":
+                set {_hasTeleportPermission} to true
+        set {_uuid} to {_target}'s uuid
+
+        if {_target} is not sender:
+            set {_isothers} to true
+
+        if {_target} is online:
+            set {_continue} to true
+        else if {_target} has played before:
+            set {_continue} to true
+
+        if {_continue} is true:
+            set {_currentClaimCount} to getCurrentClaimCount({_target})
+            if {_currentClaimCount} is greater than 0:
+                
+                # work ------------------------------------------------------------ start #
+
+                loop {claimchunk/players::%{_uuid}%::owned::*}:
+                    loop {claimchunk/players::%{_uuid}%::owned::%loop-index%::*}:
+
+                        set {_currentChunk} to world(loop-index-1).getChunkAt(loop-value-2)
+                        set {_a::*} to getChunkCoordinate({_currentChunk})
+                        delete {_currentChunk}
+
+                        if loop-index-1 is not "world":
+                            set {_w} to " (%translateWorldName(loop-index-1)%)"
+                        else:
+                            set {_w} to ""
+                        if {_hasTeleportPermission} is true:
+                            add "<suggest command:/tpchunk %{_a::1}% %{_a::2}% %loop-index-1%>[%{_a::1}%, %{_a::2}%]%{_w}%" to {_ll::*}
+                        else:
+                            add "[%{_a::1}%, %{_a::2}%]%{_w}%" to {_ll::*}
+
+                set {_ll::*} to sorted {_ll::*}
+                set {_l} to arrayToList({_ll::*}, 0, "<reset>", "<gray>")
+
+                if {_isothers} is true:
+                    send "%{_target}%은(는) 지역 %{_currentClaimCount}%개를 보호했으며, 지역 %getMaxClaimCount({_target})-{_currentClaimCount}%개를 더 보호할 수 있습니다: %formatted {_l}%" to sender
+                else:
+                    send "지역 %{_currentClaimCount}%개가 보호되었으며, %getMaxClaimCount({_target})-{_currentClaimCount}%개를 더 보호할 수 있습니다: %formatted {_l}%" to sender
+
+                # work -------------------------------------------------------------- end #
+                
+            else:
+                if {_isothers} is true:
+                    send "%{_target}%은(는) 보호한 지역이 없습니다. 지역 %getMaxClaimCount({_target})-{_currentClaimCount}%개를 보호할 수 있습니다" to sender
+                else:
+                    send "보호한 지역이 없습니다. 지역 %getMaxClaimCount({_target})-{_currentClaimCount}%개를 보호할 수 있습니다" to sender
+        else:
+            send "<light red>플레이어를 찾을 수 없습니다" to sender
+
+
+command /chunkinfo [<text>] [<text>]:
+    usage: <yellow>사용법: /chunkinfo [target]
+    executable by: players
+    permission: claimchunk.chunkinfo
+    trigger:
+        if arg 2 is not set:
+            if arg 1 is not set:
+                set {_targetChunk} to player's chunk
+            else if arg 1 is "target":
+                set {_targetChunk} to player's target block's chunk
+            else:
+                send "<light red>명령어를 실행하지 못했습니다. 유효하지 않은 매개 변수가 포함되어 있습니다" to sender
+                stop
+        else:
+            send "<light red>명령어를 실행하지 못했습니다. 매개 변수가 너무 많습니다" to sender
+            stop
+
+        if {_targetChunk} is set:
+            set {_b} to "%player's world%"
+            set {_c} to {_targetChunk}
+            set {_ck} to {_c}.getChunkKey()
+
+            # work ------------------------------------------------------------ start #
+
+            set {_a::*} to getChunkCoordinate({_c})
+            if {_b} is not "world":
+                set {_w} to " (%translateWorldName({_b})%)"
+            else:
+                set {_w} to ""
+            set {_a} to "[%{_a::1}%, %{_a::2}%]%{_w}%"
+
+            if {claimchunk/chunks::%{_b}%::%{_ck}%::owner} is not set:
+                
+                create new section stored in {_section}:
+                    return chunkIsClaimable({_c})
+                run section {_section} async and store result in {_valid} and wait
+                if {_valid} is true:
+                    send action bar "<light blue>청크 %{_a}%은(는) 보호되어 있지 않습니다" to sender
+                    play sound "ui.button.click" in player category with volume 0.5 and pitch 2 for sender
+                    makeChunkGridBlock({_c}, iron block, player)
+
+                else:
+                    send action bar "<light blue>청크 %{_a}%은(는) 보호할 수 없는 지역입니다" to sender
+                    play sound "entity.villager.no" in player category with volume 1 and pitch 1 for sender
+                    makeChunkGridBlock({_c}, redstone block, player)
+
+            else:
+                if {claimchunk/chunks::%{_b}%::%{_ck}%::owner} parsed as player is set:
+                    set {_p} to "%{claimchunk/chunks::%{_b}%::%{_ck}%::owner} parsed as player%"
+                else: 
+                    set {_p} to "%{claimchunk/chunks::%{_b}%::%{_ck}%::owner} parsed as offline player%"
+
+                if chunkIsExpired({_c}) is true:
+                    send action bar "<light blue>청크 %{_a}%은(는) %{_p}%의 지역입니다 (만료됨)" to sender
+                    makeChunkGridBlock({_c}, copper block, player)
+                else:
+                    send action bar "<light blue>청크 %{_a}%은(는) %{_p}%의 지역입니다" to sender
+                    makeChunkGridBlock({_c}, diamond block, player)
+                play sound "ui.button.click" in player category with volume 0.5 and pitch 2 for sender
+
+            # work -------------------------------------------------------------- end #
+
+        else:
+            send action bar "<light red>지역 정보를 불러올 수 없습니다. 대상 청크가 지정되지 않았습니다" to sender
+            play sound "entity.villager.no" in player category with volume 1 and pitch 1 for sender
+
+
+command /trust <text> [<text>]:
+    usage: <yellow>사용법: /trust <플레이어>
+    executable by: players
+    permission: claimchunk.trust
+    trigger:
+        if arg 2 is not set:
+            set {_t} to arg 1 parsed as player
+            if {_t} is not set:
+                $ thread
+                set {_valid} to isValidUsername(arg 1)
+                if {_valid} is true:
+                    $ thread
+                    set {_t} to arg 1 parsed as offline player
+                    set {_targetNamespace} to "%{_t}%"
+                else:
+                    send "<light red>유효하지 않은 플레이어입니다" to sender
+                    stop
+            set {_targetNamespace} to "<suggest command:/tell %{_t}% ><insertion:%{_t}%>%{_t}%"
+            if {claimchunk/players-trust::%sender's uuid%::*} doesn't contain uuid of {_t}:
+
+                # work ------------------------------------------------------------ start #
+
+                add uuid of {_t} to {claimchunk/players-trust::%sender's uuid%::*}
+
+                send "이제 %formatted {_targetNamespace}%을(를) 신뢰합니다" to sender
+
+                # work -------------------------------------------------------------- end #
+
+            else:
+                send "<light red>변경 사항이 없습니다. 이미 해당 플레이어를 신뢰하고 있습니다" to sender
+        else:
+            send "<light red>명령어를 실행하지 못했습니다. 매개 변수가 너무 많습니다" to sender
+
+
+command /untrust <text> [<text>]:
+    usage: <yellow>사용법: /untrust <플레이어>
+    executable by: players
+    permission: claimchunk.trust
+    trigger:
+        if arg 2 is not set:
+            set {_t} to arg 1 parsed as player
+            if {_t} is not set:
+                $ thread
+                set {_valid} to isValidUsername(arg 1)
+                if {_valid} is true:
+                    $ thread
+                    set {_t} to arg 1 parsed as offline player
+                    set {_targetNamespace} to "%{_t}%"
+                else:
+                    send "<light red>유효하지 않은 플레이어입니다" to sender
+                    stop
+            set {_targetNamespace} to "<suggest command:/tell %{_t}% ><insertion:%{_t}%>%{_t}%"
+            if {claimchunk/players-trust::%sender's uuid%::*} contains uuid of {_t}:
+
+                # work ------------------------------------------------------------ start #
+
+                remove all uuid of {_t} from {claimchunk/players-trust::%sender's uuid%::*}
+                send "이제 %formatted {_targetNamespace}%을(를) 신뢰하지 않습니다" to sender
+
+                # work -------------------------------------------------------------- end #
+
+            else:
+                send "<light red>변경 사항이 없습니다. 이미 해당 플레이어를 신뢰하지 않고 있습니다" to sender
+        else:
+            send "<light red>명령어를 실행하지 못했습니다. 매개 변수가 너무 많습니다" to sender
+
+
+command /trustlist [<text>] [<text>]:
+    executable by: players
+    permission: claimchunk.trust
+    trigger:
+        set {_target} to sender
+        if arg 1 is set:
+            if player has permission "claimchunk.trustlist.others":
+                $ thread
+                set {_valid} to isValidUsername(arg 1)
+                if {_valid} is true:
+                    $ thread
+                    set {_target} to arg 1 parsed as offline player
+                else:
+                    send "<light red>유효하지 않은 플레이어입니다" to sender
+                    stop
+        set {_uuid} to {_target}'s uuid
+        set {_targetNamespace} to "<suggest command:/tell %{_target}% ><insertion:%{_target}%>%{_target}%"
+
+        if {_target} is not sender:
+            set {_isothers} to true
+            
+        if {_target} is online:
+            set {_continue} to true
+        else if {_target} has played before:
+            set {_continue} to true
+
+        if {_continue} is true:
+            if size of {claimchunk/players-trust::%{_uuid}%::*} is greater than 0:
+
+                # work ------------------------------------------------------------ start #
+
+                loop {claimchunk/players-trust::%{_uuid}%::*}:
+                    $ thread
+                    set {_add} to loop-value parsed as offline player's name
+                    if {_add} is set:
+                        add {_add} to {_ll::*}
+                    else:
+                        $ thread
+                        add UUIDToUsername(loop-value) to {_ll::*}
+
+                set {_ll::*} to sorted {_ll::*}
+                loop {_ll::*}:
+                    add "<suggest command:/tell %loop-value% ><insertion:%loop-value%>%loop-value%" to {_ll2::*}
+
+                set {_l} to arrayToList({_ll2::*}, 0, "<reset>", "<gray>")
+
+                if {_isothers} is true:
+                    send formatted "%formatted {_targetNamespace}%은(는) %size of {_ll::*}%명을 신뢰하고 있습니다: %{_l}%" to sender
+                else:
+                    send formatted "%size of {_ll::*}%명을 신뢰하고 있습니다: %{_l}%" to sender
+
+                # work -------------------------------------------------------------- end #
+
+            else:
+                if {_isothers} is true:
+                    send "%formatted {_targetNamespace}%은(는) 신뢰하고 있는 플레이어가 없습니다" to sender
+                else:
+                    send "신뢰하고 있는 플레이어가 없습니다" to sender
+        else:
+            send "<light red>플레이어를 찾을 수 없습니다" to sender
+
+
+command /ignoreclaims [<text>]:
+    executable by: players
+    permission: claimchunk.ignoreclaims
+    trigger:
+        if arg 1 is not set:
+            if {claimchunk/players::%player's uuid%::bypass} is true:
+                send "지역 보호를 무시하도록 설정되어 있습니다" to sender
+            else:
+                send "지역 보호를 무시하지 않도록 설정되어 있습니다" to sender
+        else if arg 1 is "enable":
+            set {_will} to true
+        else if arg 1 is "disable":
+            set {_will} to false
+        else:
+            send "<light red>명령어를 실행하지 못했습니다. 유효하지 않은 매개 변수가 포함되어 있습니다" to command sender
+
+        if {_will} is set:
+            if {_will} is not {claimchunk/players::%player's uuid%::bypass}:
+                set {claimchunk/players::%player's uuid%::bypass} to {_will}
+                if {_will} is true:
+                    send "지역 보호를 무시하도록 설정했습니다" to sender
+                else:
+                    send "지역 보호를 무시하지 않도록 설정했습니다" to sender
+            else:
+                send "<light red>변경 사항이 없습니다. 이미 해당 상태입니다" to command sender

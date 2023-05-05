@@ -1,0 +1,23 @@
+command /displayname [<text>]:
+    usage: <yellow>사용법: /displayname [새 이름]
+    executable by: players
+    permission: social.displayname
+    trigger:
+        if arg 1 is not set:
+            if player's display name is not player's name:
+                send "표시 이름은 [%player's display name%] 입니다"
+            else:
+                send "표시 이름이 설정되어 있지 않습니다" to command sender
+
+        else:
+            if arg 1 matches "[가-힣A-Za-z0-9_]+":
+                if arg 1 is not player's display name:
+                    set player's display name to arg 1
+                    if arg 1 is not player's name:
+                        send "표시 이름을 [%arg 1%]으(로) 변경했습니다" to command sender
+                    else:
+                        send "이제 표시 이름을 사용하지 않습니다" to command sender
+                else:
+                    send "<light red>변경 사항이 없습니다. 이미 해당 표시 이름을 사용하고 있습니다" to command sender
+            else:
+                send "<light red>명령어를 실행하지 못했습니다. 표시 이름은 공백 및 특수 문자를 포함할 수 없습니다" to command sender

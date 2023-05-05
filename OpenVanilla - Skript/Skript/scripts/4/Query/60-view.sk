@@ -1,0 +1,129 @@
+command /viewplayerdata <text> [<text>]:
+    usage: <yellow>사용법: /viewplayerdata <플레이어>
+    permission: query.playerdata
+    trigger:
+        if arg 2 is not set:
+            $ thread
+            set {_target} to arg 1 parsed as offline player
+            set {_uuid} to {_target}'s uuid
+            if {_target} is online:
+                recordPlayerData({_target})
+                savePlayerBasics({_uuid})
+
+            loadPlayerBasicsTemp({_uuid})
+            if {playerbasics-temp/%{_uuid}%::*} is set:
+                send "<##0099ff>Query result of player %{_target}'s name%:"
+                if {_target} is banned:
+                    send " <gray>Banned: <white>true"
+                if {playerbasics-temp/%{_uuid}%::general::displayname} is set:
+                    send " <gray>Display name: <white>%{playerbasics-temp/%{_uuid}%::general::displayname}%"
+                if {playerbasics-temp/%{_uuid}%::gameplay::location} is set:
+                    set {_l} to {playerbasics-temp/%{_uuid}%::gameplay::location}
+                    send " <gray>Location: <white>%rounded x loc of {_l}%, %rounded y loc of {_l}%, %rounded z loc of {_l}% (%world of {_l}%)"
+                set {_spawnpoint} to {_target}.getBedSpawnLocation()
+                if {_spawnpoint} is set:
+                    set {_l} to {_spawnpoint}
+                    send " <gray>Spawnpoint: <white>%rounded x loc of {_l}%, %rounded y loc of {_l}%, %rounded z loc of {_l}% (%world of {_l}%)"
+                if {playerbasics-temp/%{_uuid}%::connection::lastconnectedfrom} is set:
+                    send " <gray>Last connected from: <white>%{playerbasics-temp/%{_uuid}%::connection::lastconnectedfrom}%"
+                if {playerbasics-temp/%{_uuid}%::connection::connectedfrom::*} is set:
+                    send " <gray>Connected from: <white>%arrayToList({playerbasics-temp/%{_uuid}%::connection::connectedfrom::*}, 0, "<white>", "<gray>")%"
+                if {playerbasics-temp/%{_uuid}%::created} is set:
+                    send " <gray>Joined: <white>%unix date of {playerbasics-temp/%{_uuid}%::created} formatted as "YYYY-MM-dd"% (%difference of unix date of {playerbasics-temp/%{_uuid}%::created} and now% ago)"
+                if {playerbasics-temp/%{_uuid}%::updated} is set:
+                    send " <gray>Updated: <white>%unix date of {playerbasics-temp/%{_uuid}%::updated} formatted as "YYYY-MM-dd"% (%difference of unix date of {playerbasics-temp/%{_uuid}%::updated} and now% ago)"
+                    unloadPlayerBasicsTemp({_uuid})
+            else:
+                send "<light red>Player not found" to command sender
+        else:
+            send "<light red>Cannot execute command. Too many arguments" to sender
+
+
+command /viewconnectiondata <text> [<text>]:
+    usage: <yellow>사용법: /viewconnectiondata <IP 주소>
+    permission: query.connectiondata
+    trigger:
+        if arg 2 is not set:
+            $ thread
+            set {_ip} to arg 1
+            loop all players:
+                if loop-player's ip is {_ip}:
+                    recordConnectionData(loop-player)
+                    saveConnectionBasics({_ip})
+            loadConnectionBasicsTemp({_ip})
+            if {connectionbasics-temp/%{_ip}%::*} is set:
+                if {connectionbasics-temp/%{_ip}%::player::lastconnectedwith} is set:
+                    set {_lastuuid} to {connectionbasics-temp/%{_ip}%::player::lastconnectedwith}
+                    $ thread
+                    set {_lastname} to "%{_lastuuid} parsed as offline player%"
+                    if {_lastname} is {_lastuuid}:
+                        $ thread
+                        set {_lastname} to UUIDToUsername({_lastuuid})
+                if {connectionbasics-temp/%{_ip}%::player::connectedwith::*} is set:
+                    loop {connectionbasics-temp/%{_ip}%::player::connectedwith::*}:
+                        $ thread
+                        set {_name} to "%loop-value parsed as offline player%"
+                        if {_name} is loop-value:
+                            $ thread
+                            set {_name} to UUIDToUsername(loop-value)
+                        add {_name} to {_connectedwithusername::*}
+                        delete {_name}
+                send "<##00ff99>Query result of IP %{_ip}%:"
+                if {_ip} is banned:
+                    send " <gray>Banned: <white>true"
+                if {_lastname} is set:
+                    send " <gray>Last connected with: <white>%{_lastname}%"
+                if {_connectedwithusername::*} is set:
+                    send " <gray>Connected with: <white>%arrayToList({_connectedwithusername::*}, 0, "<white>", "<gray>")%"
+                if {connectionbasics-temp/%{_ip}%::created} is set:
+                    send " <gray>Joined: <white>%unix date of {connectionbasics-temp/%{_ip}%::created} formatted as "YYYY-MM-dd"% (%difference of unix date of {connectionbasics-temp/%{_ip}%::created} and now% ago)"
+                if {connectionbasics-temp/%{_ip}%::updated} is set:
+                    send " <gray>Updated: <white>%unix date of {connectionbasics-temp/%{_ip}%::updated} formatted as "YYYY-MM-dd"% (%difference of unix date of {connectionbasics-temp/%{_ip}%::updated} and now% ago)"
+                unloadConnectionBasicsTemp({_ip})
+            else:
+                send "<light red>IP not found" to command sender
+        else:
+            send "<light red>Cannot execute command. Too many arguments" to sender
+
+
+command /searchsubaccount <text> [<text>]:
+    usage: <yellow>사용법: /searchsubaccount <플레이어>
+    permission: query.searchsubaccount
+    trigger:
+        if arg 2 is not set:
+            $ thread
+            set {_p} to arg 1 parsed as offline player
+            set {_uuid} to {_p}'s uuid
+
+            add {_uuid} to {_list::*}
+            loadPlayerBasicsTemp({_uuid})
+            if {playerbasics-temp/%{_uuid}%::*} is set:
+                loop {playerbasics-temp/%{_uuid}%::connection::connectedfrom::*}:
+                    loadConnectionBasicsTemp(loop-value)
+                    loop {connectionbasics-temp/%loop-value%::player::connectedwith::*}:
+                        add loop-value-2 to {_list::*} if {_list::*} doesn't contain loop-value-2
+                    unloadConnectionBasicsTemp(loop-value)
+                unloadPlayerBasicsTemp({_uuid})
+
+                loop {_list::*}:
+                    $ thread
+                    set {_name} to "%loop-value parsed as offline player%"
+                    if {_name} is loop-value:
+                        $ thread
+                        set {_name} to UUIDToUsername(loop-value)
+                    set {_list2::%loop-value%} to {_name}
+                    delete {_name}
+
+                set {_targetcurrentname} to {_list2::%{_uuid}%}
+
+                remove {_targetoldname} from {_list2::*}
+                add {_targetcurrentname} to {_list2::*} if {_list2::*} doesn't contain {_targetcurrentname}
+                        
+                set {_list2::*} to sorted {_list2::*}
+
+                send "<##ff9900>Query result of player %{_targetcurrentname}%:"
+                send arrayToList({_list2::*}, 1, "<white>", " <gray>") split at nl
+            else:
+                send "<light red>Player not found" to command sender
+        else:
+            send "<light red>Cannot execute command. Too many arguments" to sender

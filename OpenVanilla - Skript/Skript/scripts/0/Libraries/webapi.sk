@@ -1,0 +1,24 @@
+import:
+    org.bukkit.Bukkit
+
+
+function isValidUsername(username: text) :: boolean:
+    if Bukkit.isPrimaryThread() is false:
+        if {_username} matches "[A-Za-z0-9_-]+":
+            if text from "https://api.mojang.com/users/profiles/minecraft/%{_username}%" is not "":
+                return true
+            else:
+                return false
+        else:
+            return false
+    else:
+        log "Function can't be executed in main thread due to security reason!"
+
+
+function UUIDToUsername(id: text) :: text:
+    if Bukkit.isPrimaryThread() is false:
+        if {_id} matches "[A-Za-z0-9_-]+":
+            copy json text from "https://sessionserver.mojang.com/session/minecraft/profile/%{_id}%" to {_get::*}
+            return {_get::name}
+    else:
+        log "Function can't be executed in main thread due to security reason!"

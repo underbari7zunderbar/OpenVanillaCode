@@ -1,0 +1,532 @@
+import:
+    org.bukkit.Material
+    org.bukkit.entity.EntityType
+    org.bukkit.block.data.Openable
+    org.bukkit.block.data.type.Bed
+    org.bukkit.block.Container
+    org.bukkit.event.hanging.HangingPlaceEvent
+    org.bukkit.event.hanging.HangingBreakByEntityEvent
+    org.bukkit.event.player.PlayerInteractEntityEvent
+    org.bukkit.event.player.PlayerArmorStandManipulateEvent
+    org.bukkit.event.entity.EntityChangeBlockEvent
+    org.bukkit.event.player.PlayerBucketFillEvent
+    org.bukkit.event.player.PlayerBucketEmptyEvent
+    org.bukkit.event.player.PlayerBucketEntityEvent
+    org.bukkit.event.entity.EntityExplodeEvent
+    org.bukkit.event.block.BlockExplodeEvent
+    org.bukkit.event.block.BlockSpreadEvent
+    org.bukkit.event.player.PlayerInteractEvent
+    org.bukkit.event.block.Action
+    org.bukkit.event.player.PlayerTakeLecternBookEvent
+    org.bukkit.event.entity.EntityDamageByEntityEvent
+    org.bukkit.event.entity.EntityDamageByBlockEvent
+    org.bukkit.event.entity.ExplosionPrimeEvent
+    org.bukkit.event.vehicle.VehicleDamageEvent
+    org.bukkit.event.entity.EntityPlaceEvent
+    org.bukkit.event.block.BlockPlaceEvent
+    org.bukkit.event.block.BlockBreakEvent
+    io.papermc.paper.event.player.PlayerChangeBeaconEffectEvent
+    io.papermc.paper.event.player.PlayerLecternPageChangeEvent
+    io.papermc.paper.event.player.PlayerNameEntityEvent
+    io.papermc.paper.event.player.PlayerFlowerPotManipulateEvent 
+
+
+# block - prevent place / break
+on BlockPlaceEvent:
+    isBypassClaims(event.getPlayer()) is false
+    set {_target} to event.getBlockPlaced()
+    set {_player} to event.getPlayer()
+    set {_world} to {_target}.getWorld().getName()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is not {_player}'s uuid
+    {claimchunk/players-trust::%{claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner}%::*} doesn't contain {_player}'s uuid
+    cancel event
+on BlockBreakEvent:
+    isBypassClaims(event.getPlayer()) is false
+    set {_target} to event.getBlock()
+    set {_player} to event.getPlayer()
+    set {_world} to {_target}.getWorld().getName()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is not {_player}'s uuid
+    {claimchunk/players-trust::%{claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner}%::*} doesn't contain {_player}'s uuid
+    cancel event
+on EntityChangeBlockEvent:
+    event.getEntityType() is EntityType.PLAYER
+    isBypassClaims(event.getEntity()) is false
+    set {_target} to event.getBlock()
+    set {_player} to event.getEntity()
+    set {_world} to {_target}.getWorld().getName()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is not {_player}'s uuid
+    {claimchunk/players-trust::%{claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner}%::*} doesn't contain {_player}'s uuid
+    cancel event
+
+
+# block - prevent interact
+on PlayerInteractEvent:
+    isBypassClaims(event.getPlayer()) is false
+    event.getClickedBlock() is not null
+    set {_world} to event.getClickedBlock().getWorld().getName()
+    set {_block} to event.getClickedBlock()
+    set {_chunk} to event.getClickedBlock().getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    set {_type} to event.getClickedBlock().getType()
+    set {_data} to event.getClickedBlock().getBlockData()
+    set {_state} to event.getClickedBlock().getState()
+    set {_player} to event.getPlayer()
+    if {_type} is Material.DAYLIGHT_DETECTOR:
+        set {_continue} to true
+    else if {_type} is Material.NOTE_BLOCK:
+        set {_continue} to true
+    else if {_type} is Material.REDSTONE_WIRE:
+        set {_continue} to true
+    else if {_type} is Material.REPEATER:
+        set {_continue} to true
+    else if {_type} is Material.COMPARATOR:
+        set {_continue} to true
+    else if {_type} is Material.TNT:
+        set {_continue} to true
+    else if {_type} is Material.DRAGON_EGG:
+        set {_continue} to true
+    else if {_type} is Material.SPAWNER:
+        set {_continue} to true
+    else if {_type} is Material.JUKEBOX:
+        set {_continue} to true
+    else if {_type} is Material.ANVIL:
+        set {_continue} to true
+    else if {_type} is Material.CHIPPED_ANVIL:
+        set {_continue} to true
+    else if {_type} is Material.DAMAGED_ANVIL:
+        set {_continue} to true
+    else if {_type} is Material.COMPOSTER:
+        set {_continue} to true
+    else if {_type} is Material.RESPAWN_ANCHOR:
+        set {_continue} to true
+    else if {_data} is instance of Bed:
+        set {_continue} to true
+    else if {_data} is instance of Openable:
+        set {_continue} to true
+    else if {_state} is instance of Container:
+        set {_continue} to true
+    {_continue} is true
+    delete {_continue}
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is not {_player}'s uuid
+    {claimchunk/players-trust::%{claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner}%::*} doesn't contain {_player}'s uuid
+    cancel event
+on PlayerTakeLecternBookEvent:
+    isBypassClaims(event.getPlayer()) is false
+    set {_target} to event.getLectern().getBlock()
+    set {_player} to event.getPlayer()
+    set {_world} to {_target}.getWorld().getName()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is not {_player}'s uuid
+    {claimchunk/players-trust::%{claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner}%::*} doesn't contain {_player}'s uuid
+    cancel event
+on PlayerLecternPageChangeEvent:
+    isBypassClaims(event.getPlayer()) is false
+    set {_target} to event.getLectern().getBlock()
+    set {_player} to event.getPlayer()
+    set {_world} to {_target}.getWorld().getName()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is not {_player}'s uuid
+    {claimchunk/players-trust::%{claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner}%::*} doesn't contain {_player}'s uuid
+    cancel event
+on PlayerChangeBeaconEffectEvent:
+    isBypassClaims(event.getPlayer()) is false
+    set {_target} to event.getBeacon()
+    set {_player} to event.getPlayer()
+    set {_world} to {_target}.getWorld().getName()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is not {_player}'s uuid
+    {claimchunk/players-trust::%{claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner}%::*} doesn't contain {_player}'s uuid
+    cancel event
+on PlayerFlowerPotManipulateEvent:
+    isBypassClaims(event.getPlayer()) is false
+    set {_target} to event.getFlowerpot()
+    set {_player} to event.getPlayer()
+    set {_world} to {_target}.getWorld().getName()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is not {_player}'s uuid
+    {claimchunk/players-trust::%{claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner}%::*} doesn't contain {_player}'s uuid
+    cancel event
+
+
+# block - prevent spread
+on BlockSpreadEvent:
+    set {_target} to event.getBlock()
+    set {_world} to {_target}.getWorld().getName()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    {claimchunk/chunks::%{_world}%::%event.getBlock().getChunk().getChunkKey()%::owner} is set
+    if {claimchunk/chunks::%{_world}%::%event.getSource().getChunk().getChunkKey()%::owner} is not set:
+        set {_continue} to true
+    else if {claimchunk/chunks::%{_world}%::%event.getBlock().getChunk().getChunkKey()%::owner} is not {claimchunk/chunks::%{_world}%::%event.getSource().getChunk().getChunkKey()%::owner}:
+        set {_continue} to true
+    {_continue} is true
+    cancel event
+
+
+# hanging - prevent place / break
+on HangingPlaceEvent:
+    isBypassClaims(event.getPlayer()) is false
+    set {_target} to event.getEntity()
+    set {_player} to event.getPlayer()
+    set {_world} to {_target}.getWorld().getName()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is not {_player}'s uuid
+    {claimchunk/players-trust::%{claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner}%::*} doesn't contain {_player}'s uuid
+    cancel event
+on HangingBreakByEntityEvent:
+    event.getRemover().getType() is EntityType.PLAYER
+    isBypassClaims(event.getRemover()) is false
+    set {_target} to event.getEntity()
+    set {_player} to event.getRemover()
+    set {_world} to {_target}.getWorld().getName()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is not {_player}'s uuid
+    {claimchunk/players-trust::%{claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner}%::*} doesn't contain {_player}'s uuid
+    cancel event
+on HangingBreakByEntityEvent:
+    event.getRemover().getType() is not EntityType.PLAYER
+    set {_target} to event.getEntity()
+    set {_player} to event.getRemover()
+    set {_world} to {_target}.getWorld().getName()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    cancel event
+
+
+# entity - prevent summon (place) / damage (break)
+on EntityPlaceEvent:
+    isBypassClaims(event.getPlayer()) is false
+    set {_target} to event.getEntity()
+    set {_player} to event.getPlayer()
+    set {_world} to {_target}.getWorld().getName()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is not {_player}'s uuid
+    {claimchunk/players-trust::%{claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner}%::*} doesn't contain {_player}'s uuid
+    cancel event
+on EntityDamageByEntityEvent:
+    event.getDamager() is not event.getEntity()
+    event.getEntity().getType() is not EntityType.PLAYER
+    set {_damager} to event.getDamager()
+    set {_target} to event.getEntity()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    set {_world} to {_target}.getWorld().getName()
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    chunkIsExpired({_chunk}) is false
+    set {_type} to event.getEntityType()
+    if {_type} is EntityType.CAT:
+        set {_continue} to true
+    else if {_type} is EntityType.WOLF:
+        set {_continue} to true
+    else if {_type} is EntityType.FOX:
+        set {_continue} to true
+    else if {_type} is EntityType.PARROT:
+        set {_continue} to true
+    else if {_type} is EntityType.HORSE:
+        set {_continue} to true
+    else if {_type} is EntityType.AXOLOTL:
+        set {_continue} to true
+    else if {_type} is EntityType.COD:
+        set {_continue} to true
+    else if {_type} is EntityType.SALMON:
+        set {_continue} to true
+    else if {_type} is EntityType.PUFFERFISH:
+        set {_continue} to true
+    else if {_type} is EntityType.TROPICAL_FISH:
+        set {_continue} to true
+    else if {_type} is EntityType.TADPOLE:
+        set {_continue} to true
+    else if {_type} is EntityType.VILLAGER:
+        set {_continue} to true
+    else if {_type} is EntityType.ARMOR_STAND:
+        set {_continue} to true
+    else if {_type} is EntityType.ITEM_FRAME:
+        set {_continue} to true
+    else if {_type} is EntityType.GLOW_ITEM_FRAME:
+        set {_continue} to true
+    else if {_type} is EntityType.ENDER_CRYSTAL:
+        set {_continue} to true
+    else if the name of {_target} is set:
+        set {_continue} to true
+    {_continue} is true
+    if {_damager}.getType() is EntityType.PLAYER:
+        set {_player} to {_damager}
+        isBypassClaims({_player}) is false
+        {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is not {_player}'s uuid
+        {claimchunk/players-trust::%{claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner}%::*} doesn't contain {_player}'s uuid
+        cancel event
+    else:
+        cancel event
+on EntityDamageByEntityEvent:
+    event.getDamager() is not event.getEntity()
+    event.getDamager().getType() is not EntityType.PLAYER
+    event.getEntityType() is not EntityType.PLAYER
+    set {_target} to event.getEntity()
+    set {_damager} to event.getDamager()
+    set {_world} to {_target}.getWorld().getName()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    the name of {_target} is set
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is not {_damager}'s uuid
+    {claimchunk/players-trust::%{claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner}%::*} doesn't contain {_damager}'s uuid
+    cancel event
+on VehicleDamageEvent:
+    event.getAttacker() is not null
+    event.getAttacker().getType() is EntityType.PLAYER
+    isBypassClaims(event.getAttacker()) is false
+    set {_target} to event.getVehicle()
+    set {_player} to event.getAttacker()
+    set {_world} to {_target}.getWorld().getName()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is not {_player}'s uuid
+    {claimchunk/players-trust::%{claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner}%::*} doesn't contain {_player}'s uuid
+    cancel event
+
+
+# entity - prevent interact
+on PlayerInteractEntityEvent:
+    set {_player} to event.getPlayer()
+    isBypassClaims({_player}) is false
+    set {_target} to event.getRightClicked()
+    set {_type} to event.getRightClicked().getType()
+    if {_type} is EntityType.ITEM_FRAME:
+        set {_continue} to true
+    else if {_type} is EntityType.GLOW_ITEM_FRAME:
+        set {_continue} to true
+    else if {_type} is EntityType.VILLAGER:
+        set {_continue} to true
+    else if {_type} is EntityType.MINECART_CHEST:
+        set {_continue} to true
+    else if {_type} is EntityType.MINECART_COMMAND:
+        set {_continue} to true
+    else if {_type} is EntityType.MINECART_FURNACE:
+        set {_continue} to true
+    else if {_type} is EntityType.MINECART_HOPPER:
+        set {_continue} to true
+    else if {_type} is EntityType.MINECART_MOB_SPAWNER:
+        set {_continue} to true
+    else if {_type} is EntityType.MINECART_TNT:
+        set {_continue} to true
+    else if {_type} is EntityType.CHEST_BOAT:
+        set {_continue} to true
+    else if {_type} is EntityType.LEASH_HITCH:
+        set {_continue} to true
+    {_continue} is true
+    set {_world} to {_target}.getWorld().getName()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is not {_player}'s uuid
+    {claimchunk/players-trust::%{claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner}%::*} doesn't contain {_player}'s uuid
+    cancel event
+on PlayerArmorStandManipulateEvent:
+    set {_player} to event.getPlayer()
+    isBypassClaims({_player}) is false
+    set {_target} to event.getRightClicked()
+    set {_world} to {_target}.getWorld().getName()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is not {_player}'s uuid
+    {claimchunk/players-trust::%{claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner}%::*} doesn't contain {_player}'s uuid
+    cancel event
+on PlayerNameEntityEvent:
+    set {_player} to event.getPlayer()
+    isBypassClaims({_player}) is false
+    set {_target} to event.getEntity()
+    set {_world} to event.getEntity().getWorld().getName()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is not {_player}'s uuid
+    {claimchunk/players-trust::%{claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner}%::*} doesn't contain {_player}'s uuid
+    cancel event
+
+
+# entity - prevent griefing
+on EntityChangeBlockEvent:
+    if event.getEntityType() is EntityType.WITHER:
+        set {_continue} to true
+    else if event.getEntityType() is EntityType.ENDER_DRAGON:
+        set {_continue} to true
+    else if event.getEntityType() is EntityType.ZOMBIE:
+        set {_continue} to true
+    else if event.getEntityType() is EntityType.HUSK:
+        set {_continue} to true
+    else if event.getEntityType() is EntityType.ARROW:
+        set {_continue} to true
+    else if event.getEntityType() is EntityType.ENDERMAN:
+        set {_continue} to true
+    {_continue} is true
+    set {_target} to event.getBlock()
+    set {_world} to {_target}.getWorld().getName()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    cancel event
+on ExplosionPrimeEvent:
+    if event.getEntityType() is EntityType.CREEPER:
+        set {_continue} to true
+    else if event.getEntityType() is EntityType.WITHER:
+        set {_continue} to true
+    else if event.getEntityType() is EntityType.WITHER_SKULL:
+        set {_continue} to true
+    else if event.getEntityType() is EntityType.FIREBALL:
+        set {_continue} to true
+    else if event.getEntityType() is EntityType.SMALL_FIREBALL:
+        set {_continue} to true
+    else if event.getEntityType() is EntityType.DRAGON_FIREBALL:
+        set {_continue} to true
+    else if event.getEntityType() is EntityType.ENDER_CRYSTAL:
+        set {_continue} to true
+    {_continue} is true
+    set {_target} to event.getEntity()
+    set {_world} to {_target}.getWorld().getName()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    cancel event
+
+
+# bucket - prevent fill / empty / fish
+on PlayerBucketFillEvent:
+    isBypassClaims(event.getPlayer()) is false
+    set {_target} to event.getBlockClicked()
+    set {_player} to event.getPlayer()
+    set {_world} to {_target}.getWorld().getName()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is not {_player}'s uuid
+    {claimchunk/players-trust::%{claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner}%::*} doesn't contain {_player}'s uuid
+    cancel event
+on PlayerBucketEmptyEvent:
+    isBypassClaims(event.getPlayer()) is false
+    set {_target} to event.getBlockClicked()
+    set {_player} to event.getPlayer()
+    set {_world} to {_target}.getWorld().getName()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is not {_player}'s uuid
+    {claimchunk/players-trust::%{claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner}%::*} doesn't contain {_player}'s uuid
+    cancel event
+on PlayerBucketEntityEvent:
+    isBypassClaims(event.getPlayer()) is false
+    set {_target} to event.getEntity()
+    set {_player} to event.getPlayer()
+    set {_world} to {_target}.getWorld().getName()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is not {_player}'s uuid
+    {claimchunk/players-trust::%{claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner}%::*} doesn't contain {_player}'s uuid
+    cancel event
+
+
+# prevent dynamic explosions
+on EntityExplodeEvent:
+    set {_target} to event.getEntity()
+    set {_origin} to {_target}.getOrigin()
+    set {_origin_chunk} to {_origin}.getChunk()
+    set {_origin_chunkkey} to {_origin_chunk}.getChunkKey()
+    set {_origin_world} to {_origin}.getWorld().getName()
+    set {_location} to {_target}.getLocation()
+    set {_chunk} to {_location}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    set {_world} to {_target}.getWorld().getName()
+    {_chunkkey} is not {_origin_chunkkey}
+    chunkIsExpired({_chunk}) is false
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is not {claimchunk/chunks::%{_origin_world}%::%{_origin_chunkkey}%::owner}
+    cancel event
+
+
+# prevent chunk boundary explosions
+on EntityExplodeEvent:
+    set {_target} to event.getEntity()
+    set {_blocks} to event.blockList().iterator()
+    while {_blocks}.hasNext() is true:
+        set {_check::currentblock} to {_blocks}.next()
+        set {_check::location} to {_check::currentblock}.getLocation()
+        set {_check::chunk} to {_check::location}.getChunk()
+        set {_check::chunkkey} to {_check::chunk}.getChunkKey()
+        set {_check::world} to {_check::location}.getWorld().getName()
+        set {_check::origin} to {_target}.getOrigin()
+        set {_check::origin_chunk} to {_check::origin}.getChunk()
+        set {_check::origin_chunkkey} to {_check::origin_chunk}.getChunkKey()
+        set {_check::origin_world} to {_check::origin}.getWorld().getName()
+        chunkIsExpired({_check::chunk}) is false
+        {claimchunk/chunks::%{_check::world}%::%{_check::chunkkey}%::owner} is set
+        {claimchunk/chunks::%{_check::world}%::%{_check::chunkkey}%::owner} is not {claimchunk/chunks::%{_check::origin_world}%::%{_check::origin_chunkkey}%::owner}
+        {_blocks}.remove()
+        delete {_check::*}
+on BlockExplodeEvent:
+    set {_target} to event.getBlock()
+    set {_blocks} to event.blockList().iterator()
+    while {_blocks}.hasNext() is true:
+        set {_check::currentblock} to {_blocks}.next()
+        set {_check::location} to {_check::currentblock}.getLocation()
+        set {_check::chunk} to {_check::location}.getChunk()
+        set {_check::chunkkey} to {_check::chunk}.getChunkKey()
+        set {_check::world} to {_check::location}.getWorld().getName()
+        set {_check::origin} to {_target}.getLocation()
+        set {_check::origin_chunk} to {_check::origin}.getChunk()
+        set {_check::origin_chunkkey} to {_check::origin_chunk}.getChunkKey()
+        set {_check::origin_world} to {_check::origin}.getWorld().getName()
+        chunkIsExpired({_check::chunk}) is false
+        {claimchunk/chunks::%{_check::world}%::%{_check::chunkkey}%::owner} is set
+        {claimchunk/chunks::%{_check::world}%::%{_check::chunkkey}%::owner} is not {claimchunk/chunks::%{_check::origin_world}%::%{_check::origin_chunkkey}%::owner}
+        {_blocks}.remove()
+        delete {_check::*}

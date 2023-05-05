@@ -1,0 +1,39 @@
+on load:
+    set {_path1} to "./plugins/Skript-data/playerbasics/"
+    if dir path {_path1} is missing:
+        create dir path {_path1}
+
+
+function loadPlayerBasics(u: text):
+    set {_path} to "./plugins/Skript-data/playerbasics/%{_u}%.json"
+    if file path {_path} is not missing:
+        copy json arrayToStringWithoutNewLine(content of file path {_path}) to {playerbasics/%{_u}%::*}
+
+
+function unloadPlayerBasics(u: text):
+    delete {playerbasics/%{_u}%::*}
+
+
+function savePlayerBasics(u: text):
+    set {_path} to "./plugins/Skript-data/playerbasics/%{_u}%.json"
+    set {_content} to json form of {playerbasics/%{_u}%::*}
+    if file path {_path} is missing:
+        create file path {_path} with text {_content}
+    else:
+        set content of file path {_path} to {_content}
+
+
+function loadPlayerBasicsTemp(u: text):
+    set {_path} to "./plugins/Skript-data/playerbasics/%{_u}%.json"
+    if file path {_path} is not missing:
+        copy json arrayToStringWithoutNewLine(content of file path {_path}) to {playerbasics-temp/%{_u}%::*}
+
+
+function unloadPlayerBasicsTemp(u: text):
+    delete {playerbasics-temp/%{_u}%::*}
+
+
+function saveAllPlayersBasics():
+    loop all players:
+        unix timestamp of now - loop-player.getLastLogin() / 1000 is greater than 1
+        savePlayerBasics(loop-player's uuid)

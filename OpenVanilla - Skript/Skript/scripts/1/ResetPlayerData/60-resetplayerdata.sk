@@ -1,0 +1,70 @@
+options:
+    worldname: world
+
+
+command /resetplayerdata <text> [<text>]:
+    usage: <yellow>사용법: /resetplayerdata <플레이어>
+    permission: resetplayerdata
+    trigger:
+        if arg 2 is not set:
+            $ thread
+            set {_valid} to isValidUsername(arg 1)
+            if {_valid} is true:
+                $ thread
+                set {_target} to arg 1 parsed as offline player
+                set {_uuid} to {_target}'s uuid
+
+                if {_target} is not banned:
+                    ban {_target} due to "You're temporary blocked from server. Please wait before rejoin!"
+                    set {_unbanAfterOperation} to true
+
+                if {_target} is online:
+                    kick {_target} due to "You're kicked by operator due to resetting your data!"
+                    send "%{_target}% is automatically kicked for operation. Waiting 5 seconds (100 ticks) before continue" to command sender
+                    wait 5 seconds
+
+                send "Removing %{_target}%'s world data" to command sender
+                set {_t1} to unix timestamp of now
+
+                create new section stored in {_section}:
+                    if file path "{@worldname}/playerdata/%{_uuid}%.dat" is not missing:
+                        delete file path "{@worldname}/playerdata/%{_uuid}%.dat"
+                        return "- World data is cleared"
+                    else:
+                        return "- <light red>That player's world data is not found"
+                run section {_section} async and store result in {_return} and wait
+                delete {_section}
+                send {_return} to command sender
+                delete {_return}
+
+                create new section stored in {_section}:
+                    if file path "{@worldname}/advancements/%{_uuid}%.json" is not missing:
+                        delete file path "{@worldname}/advancements/%{_uuid}%.json"
+                        return "- Advancement data is cleared"
+                    else:
+                        return "- <light red>That player's advancement data is not found"
+                run section {_section} async and store result in {_return} and wait
+                delete {_section}
+                send {_return} to command sender
+                delete {_return}
+
+                create new section stored in {_section}:
+                    if file path "{@worldname}/stats/%{_uuid}%.json" is not missing:
+                        delete file path "{@worldname}/stats/%{_uuid}%.json"
+                        return "- Statistics are cleared"
+                    else:
+                        return "- <light red>That player's statistics data is not found"
+                run section {_section} async and store result in {_return} and wait
+                delete {_section}
+                send {_return} to command sender
+                delete {_return}
+
+                if {_unbanAfterOperation} is true:
+                    unban {_target}
+
+                set {_t2} to unix timestamp of now
+                send "Done (%({_t2} - {_t1})*1000%ms)" to command sender
+            else:
+                send "<light red>Invalid player" to command sender
+        else:
+            send "<light red>Cannot execute command. A space is required to end the command" to sender

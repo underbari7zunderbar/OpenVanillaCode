@@ -1,0 +1,17 @@
+on load:
+    wait a tick
+
+    add "execute in minecraft:overworld run forceload remove all" to {_commands::*}
+    add "execute in minecraft:overworld run forceload add 0 0 -1 -1" to {_commands::*}
+
+    add "execute in minecraft:the_nether run forceload remove all" to {_commands::*}
+    add "execute in minecraft:the_nether run forceload add 0 0 -1 -1" to {_commands::*}
+
+    add "execute in minecraft:the_end run forceload remove all" to {_commands::*}
+    add "execute in minecraft:the_end run forceload add 250 250 0 0" to {_commands::*}
+    add "execute in minecraft:the_end run forceload add 250 -250 0 -1" to {_commands::*}
+    add "execute in minecraft:the_end run forceload add -250 250 -1 0" to {_commands::*}
+    add "execute in minecraft:the_end run forceload add -250 -250 -1 -1" to {_commands::*}
+
+    loop {_commands::*}:
+        execute console command loop-value

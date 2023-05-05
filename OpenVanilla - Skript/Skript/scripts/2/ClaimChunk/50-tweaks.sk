@@ -1,0 +1,64 @@
+import:
+    org.bukkit.Material
+    org.bukkit.event.player.PlayerTeleportEvent
+    org.bukkit.event.player.PlayerJoinEvent
+
+
+function disableNetherPortalTemporary(player: player, location: location):
+    loop (-2, -1, 0, 1, 2):
+        loop (-1, 0, 1):
+            loop (-1, 0, 1):
+                add {_location}.clone().add(loop-value-2, loop-value-1, loop-value-3) to {_loc::*}
+
+    loop 5 times:
+        loop {_loc::*}:
+            loop-value-2.getBlock().getType() is Material.NETHER_PORTAL
+            {_player}.sendBlockChange(loop-value-2, Material.AIR.createBlockData())
+        wait a tick
+        stop if {_player} is not online
+
+    set {_start} to unix timestamp of now
+    loop 600 times:
+        if {_player}.getLocation().getBlock().getType() is not Material.NETHER_PORTAL:
+            loop round(10 * (tps from last 1m / 20)) times:
+                wait a tick
+            stop if {_player} is not online
+            {_player}.getLocation().getBlock().getType() is not Material.NETHER_PORTAL
+            loop {_loc::*}:
+                {_player}.sendBlockChange(loop-value-2, loop-value-2.getBlock().getBlockData())
+            stop
+        loop round(10 * (tps from last 1m / 20)) times:
+            wait a tick
+        wait a tick
+        stop if {_player} is not online
+        stop if unix timestamp of now - {_start} is greater than 300
+
+
+# portal
+on PlayerTeleportEvent:
+    event.getCause() is PlayerTeleportEvent.TeleportCause.NETHER_PORTAL
+    event.getTo().getBlock().getType() is Material.NETHER_PORTAL
+    isBypassClaims(event.getPlayer()) is false
+    set {_target} to event.getTo().getBlock()
+    set {_player} to event.getPlayer()
+    set {_world} to {_target}.getWorld().getName()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is not {_player}'s uuid
+    {claimchunk/players-trust::%{claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner}%::*} doesn't contain {_player}'s uuid
+    disableNetherPortalTemporary({_player}, event.getTo())
+on PlayerJoinEvent:
+    event.getPlayer().getLocation().getBlock().getType() is Material.NETHER_PORTAL
+    isBypassClaims(event.getPlayer()) is false
+    set {_target} to event.getPlayer().getLocation().getBlock()
+    set {_player} to event.getPlayer()
+    set {_world} to {_target}.getWorld().getName()
+    set {_chunk} to {_target}.getChunk()
+    set {_chunkkey} to {_chunk}.getChunkKey()
+    chunkIsExpired({_chunk}) is false
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is set
+    {claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner} is not {_player}'s uuid
+    {claimchunk/players-trust::%{claimchunk/chunks::%{_world}%::%{_chunkkey}%::owner}%::*} doesn't contain {_player}'s uuid
+    disableNetherPortalTemporary({_player}, event.getPlayer().getLocation())

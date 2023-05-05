@@ -1,0 +1,4 @@
+on tab completer for "connectionmessage":
+    if argument at 2 is not set:
+        add "enable" to completions
+        add "disable" to completions

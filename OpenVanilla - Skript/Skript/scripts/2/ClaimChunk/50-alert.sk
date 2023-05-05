@@ -1,0 +1,29 @@
+on join:
+    set {_uuid} to player's uuid
+    
+    loop {claimchunk/players::%{_uuid}%::owned::*}:
+        loop {claimchunk/players::%{_uuid}%::owned::%loop-index%::*}:
+            set {_currentChunk} to world(loop-index-1).getChunkAt(loop-value-2)
+            add {_currentChunk} to {_a::*}
+            delete {_currentChunk}
+    size of {_a::*} is greater than 0
+
+    if {claimchunk/players::%{_uuid}%::lastquit} is set:
+        set {_difference} to round((unix timestamp of now - {claimchunk/players::%{_uuid}%::lastquit}) / 86400)
+        wait 5 second
+        player is online
+        if {_difference} is greater than 60:
+            send "<yellow>마지막 활동으로부터 %{_difference}%일이 경과했으며, 보호한 모든 지역이 만료되었습니다. 60일 이상 활동하지 않으면 보호한 모든 지역이 만료되며, 다른 플레이어가 접근할 수 있게 됩니다" to player
+            send "<light blue>팁: 지역이 만료되어도 다른 플레이어가 지역을 보호하지 않았다면 지금부터 지역이 다시 보호됩니다"
+        else if {_difference} is greater than 14:
+            send "<yellow>마지막 활동으로부터 %{_difference}%일이 경과했습니다. 60일 이상 활동하지 않으면 보호한 모든 지역이 만료되며, 다른 플레이어가 접근할 수 있게 됩니다" to player
+
+    else:
+        wait 5 second
+        player is online
+        send "<yellow>60일 이상 활동하지 않으면 보호한 모든 지역이 만료되며, 다른 플레이어가 접근할 수 있게 됩니다" to player
+
+
+on quit:
+    set {_uuid} to player's uuid
+    set {claimchunk/players::%{_uuid}%::lastquit} to unix timestamp of now

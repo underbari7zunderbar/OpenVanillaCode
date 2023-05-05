@@ -1,0 +1,55 @@
+function loadBannedPlayers():
+    copy json arrayToString(content of file path "./banned-players.json") to {_a::*}
+    delete {isbanned::*}
+    loop {_a::*}:
+        set {isbanned::%loop-index%} to loop-value
+        loop {_a::%loop-index%::*}:
+            set {isbanned::%loop-index-1%::%loop-index-2%} to loop-value-2
+
+
+on load:
+    loadBannedPlayers()
+
+
+every 5 second:
+    $ thread
+    loadBannedPlayers()
+
+on unload:
+    delete {isbanned::*}
+
+
+command /isbanned <text> [<text>]:
+    usage: <yellow>사용법: /isbanned <플레이어>
+    permission: query.banned
+    trigger:
+        if arg 2 is not set:
+            $ thread
+            set {_target} to arg 1 parsed as offline player
+            set {_uuid} to {_target}'s uuid
+
+            loop {isbanned::*}:
+                if {isbanned::%loop-index%::name} is {_target}'s name:
+                    set {_continue} to true
+                    set {_index} to loop-index
+                else if {isbanned::%loop-index%::uuid} is {_uuid}:
+                    set {_continue} to true
+                    set {_index} to loop-index
+
+            $ thread
+            set {_currentname} to UUIDToUsername({isbanned::%{_index}%::uuid})
+
+            if {_continue} is true:
+                send "<light red>Query result of player %{_currentname}%:" to sender
+                if {isbanned::%{_index}%::name} is not {_currentname}:
+                    send " <gray>Also known as: <white>%{isbanned::%{_index}%::name}%" to sender
+                send " <gray>Created: <white>%{isbanned::%{_index}%::created}%" to sender
+                if {isbanned::%{_index}%::expires} is not "forever":
+                    send " <gray>Expires: <white>%{isbanned::%{_index}%::expires}%" to sender
+                send " <gray>Reason: <white>%{isbanned::%{_index}%::reason}%" to sender
+                send " <gray>Source: <white>%{isbanned::%{_index}%::source}%" to sender
+
+            else:
+                send "<light red>Player not found" to sender
+        else:
+            send "<light red>Cannot execute command. Too many arguments" to sender

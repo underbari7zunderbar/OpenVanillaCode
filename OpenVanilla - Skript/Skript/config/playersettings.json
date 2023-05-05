@@ -1,0 +1,7 @@
+{
+    "default": {
+        "send-join-quit-message": true,
+        "chatmode": 1,
+        "showmotd": true
+    }
+}

@@ -1,0 +1,7 @@
+function sendMotd(player: player):
+    send "" to {_player}
+    send formatted "<reset>%{_player}'s display name%님, %{branding::title::normal}%<reset>에 오신 것을 환영합니다!" to {_player}
+    send "" to {_player}
+    send formatted "<##cccccc><font:uniform>●<reset> <##cccccc>이 서버는 <white>평화를 지향<reset><##cccccc>하는 <white>바닐라 서버<reset><##cccccc>입니다" to {_player}
+    send formatted "<##cccccc><font:uniform>●<reset> <##cccccc>더 자세히 알아보려면 <white><tooltip:클릭하여 이동하기><url:%{branding::link::help}%>[도움말 (클릭)]<reset><##cccccc>를 확인해보세요" to {_player}
+    send "" to {_player}

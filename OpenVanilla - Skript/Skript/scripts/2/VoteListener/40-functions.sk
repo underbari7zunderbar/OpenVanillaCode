@@ -1,0 +1,25 @@
+function showThanksToVote(player: player):
+    send "<##d1a3ff>%{_player}'s display name%님, 서버를 추천해 주셔서 감사합니다!" to {_player}
+
+
+function broadcastVote(player: player):
+    if {votelistener/temp::%{_player}%::suspress} is not true:
+        loop all players:
+            loop-value is not {_player}
+            send "<##d1a3ff>%{_player}'s display name%<##d1a3ff>님이 서버를 추천해 주셨습니다!" to loop-value
+        set {votelistener/temp::%{_player}%::suspress} to true
+        wait 10 minutes
+        delete {votelistener/temp::%{_player}%::suspress}
+
+
+function giveVoteReward(player: player):
+    if {_player} can hold 1 of bedrock named ":LASJDF{OKAJSfklajfs":
+        set {_message} to "<lime>추천 보상을 받았습니다" 
+    else:
+        set {_message} to "<light red>보관함 공간이 충분하지 않아 아이템이 바닥에 떨어졌습니다!"
+
+    set {_items::*} to {votelistener::rewards::*}
+    set {_random} to random integer between 1 and size of {_items::*}
+    execute console command "/give %{_player}'s name% %{_items::%{_random}%}%"
+
+    send action bar {_message} to {_player}

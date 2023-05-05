@@ -1,0 +1,67 @@
+options:
+    max_range: 2500
+
+
+command /near [<text>] [<text>] [<text>]:
+    permission: social.near
+    executable by: players
+    trigger:
+        if arg 3 is not set:
+        
+            if arg 1 is set:
+                set {_searchrange} to arg 1 parsed as integer
+                if {_searchrange} is not set:
+                    send "&c명령어를 실행하지 못했습니다. 유효하지 않은 매개 변수가 포함되어 있습니다" to command sender
+                    stop
+                else if {_searchrange} is not between 1 and {@max_range}:
+                    send "&c명령어를 실행하지 못했습니다. 범위는 1에서 {@max_range} 사이의 정수여야 합니다" to command sender
+                    stop
+            else:
+                set {_searchrange} to {social::localrange}
+
+            if arg 2 is set:
+                set {_target} to arg 2 parsed as player
+                if {_target} is not set:
+                    send "<light red>플레이어를 찾을 수 없습니다" to sender
+                    stop
+            else:
+                set {_target} to sender
+            set {_targetNamespace} to "<suggest command:/tell %{_target}% ><insertion:%{_target}%>%{_target}%"
+
+            if {_target} is not sender:
+                set {_isothers} to true
+
+            # get players in range
+            set {_playersinrange::*} to players in radius {_searchrange} of {_target}
+
+            # make list by filtered players
+            loop {_playersinrange::*}:
+                loop-value is not {_target}
+                loop-value is alive
+                loop-value's gamemode is not spectator
+                set {_distance} to rounded distance between {_target} and loop-value
+                        
+                set {_players::%{_distance}%} to true
+                add "<suggest command:/tell %loop-value% ><insertion:%loop-value%>%loop-value%<reset> (%{_distance}%m)" to {_players::%{_distance}%::*}
+
+            # align
+            loop {_players::*}:
+                loop {_players::%loop-index-1%::*}:
+                    add loop-value-2 to {_playerslist::*}
+                    
+            # out
+            set {_count} to size of {_playerslist::*}
+            if {_count} is greater than 0:
+                set {_list} to arrayToList({_playerslist::*}, 0, "<reset>", "<gray>")
+                if {_isothers} is true:
+                    send "%formatted {_targetNamespace}%의 반경 %{_searchrange}%블록 내에 %{_count}%명이 있습니다: %formatted {_list}%" to command sender
+                else:
+                    send "반경 %{_searchrange}%블록 내에 %{_count}%명이 있습니다: %formatted {_list}%" to command sender
+            else:
+                if {_isothers} is true:
+                    send "%formatted {_targetNamespace}%의 반경 반경 %{_searchrange}%블록 내에 플레이어를 찾을 수 없습니다" to command sender
+                else:
+                    send "반경 %{_searchrange}%블록 내에 플레이어를 찾을 수 없습니다" to command sender
+
+        else:
+            send "<light red>명령어를 실행하지 못했습니다. 매개 변수가 너무 많습니다" to command sender

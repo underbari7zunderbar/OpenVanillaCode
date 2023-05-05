@@ -1,0 +1,11 @@
+function textIsFiltered(text: text) :: boolean:
+    replace all " " with "" in {_text}
+    replace "1" and "2" with "" in {_text}
+    replace "`" and "~", "!", "@", "##", "$", "%%", "^", "&", "*", "(", ")", "-", "_", "=", "+", "[", "{", "]", "}", ";", ":", """", "'", ",", "<", ".", ">", "/", "?", "\", "|" with "" in {_text}
+    loop {textfilter::words::*}:
+        delete {_check}
+        set {_check} to loop-value
+        replace all " " with "" in {_check}
+        if {_text} contains {_check}:
+            return true
+    return false

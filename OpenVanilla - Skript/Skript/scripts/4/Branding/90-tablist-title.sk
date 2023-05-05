@@ -1,0 +1,42 @@
+on load:
+    delete {%script%::*}
+
+    set {%script%::header::now} to ""
+    set {%script%::footer::now} to ""
+
+    set {%script%::footer::string::*} to {branding::tablist::tips::*}
+
+    set {%script%::header::margin} to {branding::tablist::title_side_margin}
+    
+on unload:
+    reset all players' tab list header
+    reset all players' tab list footer
+
+    delete {%script%::*}
+
+
+# header
+every 1 second:
+    set {%script%::header::now} to "%{%script%::header::margin}%%formatted {branding::title::spaced}%%{%script%::header::margin}%"
+    
+
+# footer
+every 5 seconds:
+    if {%script%::footer::page} is set:
+        set {_netxpage} to {%script%::footer::page} + 1
+        if {%script%::footer::string::%{_netxpage}%} is set:
+            add 1 to {%script%::footer::page}
+        else:
+            set {%script%::footer::page} to 1
+    else:
+        set {%script%::footer::page} to 1
+
+    set {%script%::footer::now} to formatted {%script%::footer::string::%{%script%::footer::page}%}
+
+
+# update
+every 0.5 second:
+    $ thread
+    set all players' tab list header to "%nl%%{%script%::header::now}%%nl%"
+    $ thread
+    set all players' tab list footer to "%nl%%{%script%::footer::now}%%nl%"

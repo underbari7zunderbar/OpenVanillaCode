@@ -1,0 +1,10 @@
+on tab completer for "viewinventory":
+    if argument at 2 is not set:
+        loop all players:
+            add "%loop-player%" to completions
+
+
+on tab completer for "viewenderchest":
+    if argument at 2 is not set:
+        loop all players:
+            add "%loop-player%" to completions

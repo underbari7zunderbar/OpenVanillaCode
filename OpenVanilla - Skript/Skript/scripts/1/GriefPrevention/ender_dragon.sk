@@ -1,0 +1,16 @@
+import:
+    org.bukkit.entity.EntityType
+    org.bukkit.event.entity.EntityChangeBlockEvent
+    org.bukkit.event.entity.EntityExplodeEvent
+
+
+on EntityChangeBlockEvent:
+    event.getEntity().getWorld() is world("world_the_end")
+    event.getEntityType() is EntityType.ENDER_DRAGON
+    cancel event
+
+
+on EntityExplodeEvent:
+    event.getEntity().getWorld() is world("world_the_end")
+    event.getEntityType() is EntityType.ENDER_DRAGON
+    cancel event

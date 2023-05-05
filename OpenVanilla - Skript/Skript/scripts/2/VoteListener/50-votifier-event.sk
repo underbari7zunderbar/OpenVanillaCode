@@ -1,0 +1,20 @@
+on votifier vote:
+    $ thread
+    set {_valid} to isValidUsername(username of event-vote)
+    if {_valid} is true:
+        set {_player} to username of event-vote parsed as offline player
+        set {_uuid} to {_player}'s uuid
+
+        if {_player} is online:
+            
+            showThanksToVote({_player})
+            #giveVoteReward({_player})
+            broadcastVote({_player})
+
+        else if {_player} is offline:
+            set {votelistener/players::%{_uuid}%::votedwhenoffline} to true
+            
+    else:
+        loop all players:
+            if loop-player has permission "votelistener.log":
+                send "<gray>[VoteListener] Received invalid vote request from %website of event-vote% (Username: %username of event-vote%)" to loop-player

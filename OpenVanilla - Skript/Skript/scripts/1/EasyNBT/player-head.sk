@@ -1,0 +1,27 @@
+on swap hand items:
+    tool is player head
+    player is sneaking
+    cancel event
+
+    set {_c} to chest with 1 rows named "&k&k&l&k&l&rSkullOwner:<##777777><underline>HERE<reset>"
+
+    loop all players:
+        size of {_p::*} is not greater than 9
+        player's world is loop-player's world
+        distance between player and loop-value is not greater than 64
+        set {_p::%distance between player and loop-value%} to loop-player
+
+    set {_index} to 0
+    loop {_p::*}:
+        set slot {_index} of {_c} to loop-value's head named "&r%loop-value's name%"
+        add 1 to {_index}
+
+    open {_c} to player
+
+
+on inventory click:
+    name of player's current inventory starts with "&k&k&l&k&l&r"
+    cancel event
+    clicked inventory is player's current inventory
+    name of clicked slot is set
+    set player's tool to (item amount of player's tool) of (uncolored name of clicked slot parsed as player)'s head

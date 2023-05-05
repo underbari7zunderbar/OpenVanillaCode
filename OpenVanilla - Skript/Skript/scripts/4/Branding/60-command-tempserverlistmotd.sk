@@ -1,0 +1,26 @@
+command /settempmotd <text> [<text>]:
+    usage: <yellow>사용법: /settempmotd <기간 (초)> <새 메시지>
+    permission: branding.admin
+    trigger:
+        set {_duration} to arg 1 parsed as integer
+        if {_duration} is not set:
+            send "<light red>명령어를 실행하지 못했습니다. 유효하지 않은 매개 변수가 포함되어 있습니다" to sender
+        else:
+            if arg 2 is set:
+                set {_message} to arg 2
+            else:
+                set {_message} to ""
+            setServerListTempMotd({_message}, {_duration})
+            send "%{_duration}%초 동안 새로운 MOTD를 적용합니다. 새 메시지는 다음과 같습니다" to sender
+            send " -> %{_message}%" to sender
+            
+
+
+command /unsettempmotd:
+    permission: branding.admin
+    trigger:
+        set {_result} to disableServerListTempMotd()
+        if {_result} is true:
+            send "임시로 적용된 MOTD를 제거했습니다. 이제 미리 구성된 메시지가 표시됩니다" to sender
+        else:
+            send "<light red>변경 사항이 없습니다. 임시로 적용된 MOTD가 없습니다" to sender

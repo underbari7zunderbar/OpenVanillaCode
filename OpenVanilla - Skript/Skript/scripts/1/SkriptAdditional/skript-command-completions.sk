@@ -1,0 +1,35 @@
+on tab completer for "skript":
+    if player has permission "skript.tabcomplition":
+        set {_continue} to true
+    else if sender is not online:
+        set {_continue} to true
+    {_continue} is true
+    if argument at 2 is not set:
+        add "reload" to completions
+        add "enable" to completions
+        add "disable" to completions
+        add "update" to completions
+        add "info" to completions
+        add "help" to completions
+    else if argument at 1 is "reload":
+        if argument at 3 is not set:
+            add "all" to completions
+            add "config" to completions
+            add "aliases" to completions
+            add "scripts" to completions
+            loop loaded scripts:
+                add loop-value to completions
+    else if argument at 1 is "enable":
+        if argument at 3 is not set:
+            add "all" to completions
+            loop unloaded scripts:
+                add loop-value to completions
+    else if argument at 1 is "disable":
+        if argument at 3 is not set:
+            add "all" to completions
+            loop loaded scripts:
+                add loop-value to completions
+    else if argument at 1 is "update":
+        add "check" to completions
+        add "changes" to completions
+        add "download" to completions

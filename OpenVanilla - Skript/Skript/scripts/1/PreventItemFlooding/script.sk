@@ -1,0 +1,43 @@
+import:
+    org.bukkit.Bukkit
+    org.bukkit.Material
+
+
+options:
+    threshold: 7500
+
+
+function getMostDroppedItemInWorld(world: world) :: text:
+    loop all dropped items in {_world}:
+        set {_currentMaterial} to loop-value.getItemStack().getType().toString()
+        add 1 to {_items::%{_currentMaterial}%}
+        delete {_currentMaterial}
+    set {_previousValue} to 0
+    loop {_items::*}:
+        set {_currentValue} to loop-value
+        {_currentValue} is greater than {_previousValue}
+        set {_mostAmountItem} to loop-index
+        set {_previousValue} to loop-value
+    if {_mostAmountItem} is set:
+        return {_mostAmountItem}.toUpperCase()
+
+
+function cleanItemsInWorld(world: world) :: integer:
+    set {_num} to 0
+    set {_targetMaterialName} to getMostDroppedItemInWorld({_world})
+    if {_targetMaterialName} is set:
+        set {_targetMaterial} to Material.valueOf({_targetMaterialName})
+        loop all dropped items in {_world}:
+            loop-value.getItemStack().getType() is {_targetMaterial}
+            kill loop-value
+            add 1 to {_num}
+    return {_num}
+
+
+every 30 seconds:
+    loop all worlds:
+        set {_num} to amount of all dropped items in loop-world
+        if {_num} is greater than {@threshold}:
+            set {_cleared} to cleanItemsInWorld(loop-world)
+            log "Cleared %{_cleared}% items in '%loop-world%'"
+        delete {_num}

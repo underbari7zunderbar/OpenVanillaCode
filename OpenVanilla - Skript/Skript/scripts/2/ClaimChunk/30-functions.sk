@@ -1,0 +1,176 @@
+import:
+    org.bukkit.Bukkit
+    org.bukkit.Material
+    org.bukkit.BanList
+
+
+options:
+    startchunk: 1
+    addperhour: 1
+    maxchunk: 256
+    expireTime: 60 days
+
+
+function chunkIsClaimable(c: chunk) :: boolean:
+    if getChunkCoordinate({_c}) is (0, 0) or (-1, 0) or (0, -1) or (-1, -1):
+        return false
+    set {_cs} to {_c}.getChunkSnapshot()
+    set {_world} to {_c}.getWorld()
+    loop (5, 10, 0, 15):
+        loop (6, 9, 4, 11, 3, 12, 1, 14, 0, 15):
+            set {_minimal} to {_world}.getMinHeight()
+            set {_highest} to {_cs}.getHighestBlockYAt(loop-value-1, loop-value-2)
+            if {_minimal} is not greater than {_highest}:
+                loop all integers between {_minimal} and {_highest}:
+                    if {_cs}.getBlockType(loop-value-1, loop-value-3, loop-value-2) is Material.END_PORTAL_FRAME:
+                        return false
+    return true
+
+
+function chunkIsExpired(c: chunk) :: boolean:
+    set {_b} to {_c}.getWorld().getName()
+    set {_ck} to {_c}.getChunkKey()
+    set {_uuid} to {claimchunk/chunks::%{_b}%::%{_ck}%::owner}
+    if {_uuid} is set:
+        set {_player} to {_uuid} parsed as player
+        if {_player} is set:
+            return false
+        else:
+            set {_isbanned} to Bukkit.getBanList(BanList.Type.NAME).isBanned({_uuid})
+            if {_isbanned} is true:
+                return true
+            else:
+                set {_offlineplayer} to {_uuid} parsed as offline player
+                if {_offlineplayer} is not set:
+                    return true
+                else if difference between unix date of {_offlineplayer}.getLastSeen() / 1000 and now is greater than {@expireTime}:
+                    return true
+        return false
+
+
+function isBypassClaims(p: offline player) :: boolean:
+    if {claimchunk/players::%{_p}'s uuid%::bypass} is set:
+        if {claimchunk/players::%{_p}'s uuid%::bypass} is true:
+            return true
+        else:
+            return false
+    else:
+        return false
+
+
+function getMaxClaimCount(p: offline player) :: integer:
+    set {_n} to {@startchunk}
+    add rounded (((unix timestamp of now) - (unix timestamp of (time played of {_p} ago))) / 3600) * {@addperhour} to {_n}
+    set {_n} to {@maxchunk} if {_n} is greater than {@maxchunk}
+    return {_n}
+
+
+function getCurrentClaimCount(p: offline player) :: integer:
+    set {_uuid} to {_p}'s uuid
+    set {_result} to 0
+    loop {claimchunk/players::%{_uuid}%::owned::*}:
+        add size of {claimchunk/players::%{_uuid}%::owned::%loop-index%::*} to {_result}
+    return {_result}
+
+
+function getChunkCoordinate(c: chunk) :: integers:
+    return {_c}.getX() and {_c}.getZ()
+
+
+function getChunkLocation(c: chunk) :: vector:
+    set {_c::*} to getChunkCoordinate({_c})
+    set {_x} to {_c::1} * 16
+    set {_z} to {_c::2} * 16
+    return vector({_x}, 0, {_z})
+
+
+function getChunkCorners(c: chunk) :: locations:
+    set {_loc} to getChunkLocation({_c})
+    set {_x} to x of {_loc}
+    set {_z} to z of {_loc}
+    add location({_x}, 0, {_z}) to {_ret::*}
+    add location({_x}+15, 0, {_z}) to {_ret::*}
+    add location({_x}, 0, {_z}+15) to {_ret::*}
+    add location({_x}+15, 0, {_z}+15) to {_ret::*}
+    return {_ret::*}
+
+
+function getChunkGrid(c: chunk) :: locations:
+    set {_loc} to getChunkLocation({_c})
+    set {_x::1} to x of {_loc}
+    set {_z::1} to z of {_loc}
+    set {_x::2} to x of {_loc} + 15
+    set {_z::2} to z of {_loc} + 15
+    loop all integers between {_z::1} and {_z::2}:
+        add location({_x::1}, 0, loop-value) to {_ret::*}
+    loop all integers between {_z::1} and {_z::2}:
+        add location({_x::2}, 0, loop-value) to {_ret::*}
+    loop all integers between {_x::1} and {_x::2}:
+        add location(loop-value, 0, {_z::1}) to {_ret::*}
+    loop all integers between {_x::1} and {_x::2}:
+        add location(loop-value, 0, {_z::2}) to {_ret::*}
+    return {_ret::*}
+
+
+function makeChunkGridEffect(c: chunk, y: number, e: visual effect, n: integer, t: player):
+    loop 3 times:
+        loop {_n} times:
+            loop getChunkGrid({_c}):
+                set {_loc} to loop-value-3
+                set world of {_loc} to {_t}'s world
+                set x loc of {_loc} to x loc of {_loc} + 0.5
+                set z loc of {_loc} to z loc of {_loc} + 0.5
+                set y loc of {_loc} to {_y} + 0.5
+                play 1 {_e} at {_loc} to {_t}
+        add 1 to {_y}
+
+
+function makeChunkGridBlock(c: chunk, b: item, t: player):
+    loop getChunkGrid({_c}):
+        set {_loc} to loop-value
+        set world of {_loc} to {_t}'s world
+        set x loc of {_loc} to x loc of {_loc}
+        set z loc of {_loc} to z loc of {_loc}
+        set y loc of {_loc} to y loc of highest block at {_loc}
+        add {_loc} to {_loc::*}
+    if {claimchunk/temp::%{_t}%::focusedchunk} is not {_c}:
+        loop getChunkGrid({claimchunk/temp::%{_t}%::focusedchunk}):
+            set {_loc2} to loop-value
+            set world of {_loc2} to {_t}'s world
+            set x loc of {_loc2} to x loc of {_loc2}
+            set z loc of {_loc2} to z loc of {_loc2}
+            set y loc of {_loc2} to y loc of highest block at {_loc2}
+            add {_loc2} to {_loc2::*}
+    loop {_loc2::*}:
+        make {_t} see block at loop-value as block at loop-value
+    set {_rand} to random integer between 1 and 99999999
+    set {claimchunk/temp::%{_t}%::%{_c}%::focusedprocess} to {_rand}
+    set {claimchunk/temp::%{_t}%::focusedchunk} to {_c}
+    loop 2 times:
+        if {claimchunk/temp::%{_t}%::focusedchunk} is {_c}:
+            if {claimchunk/temp::%{_t}%::%{_c}%::focusedprocess} is {_rand}:
+                loop {_loc::*}:
+                    make {_t} see block at loop-value-2 as {_b}
+                loop rounded up (10 * (tps from last 1m/20)) times:
+                    wait a tick
+            if {claimchunk/temp::%{_t}%::%{_c}%::focusedprocess} is {_rand}:
+                loop {_loc::*}:
+                    make {_t} see block at loop-value-2 as block at loop-value-2
+            else:
+                stop
+            loop rounded up (10 * (tps from last 1m/20)) times:
+                wait a tick
+        else:
+            stop
+
+
+function translateWorldName(world: text) :: text:
+    if {_world} is "world":
+        set {_ret} to "오버월드"
+    else if {_world} is "world_nether":
+        set {_ret} to "네더"
+    else if {_world} is "world_the_end":
+        set {_ret} to "디 엔드"
+    else:
+        set {_ret} to "알 수 없음"
+    return {_ret}

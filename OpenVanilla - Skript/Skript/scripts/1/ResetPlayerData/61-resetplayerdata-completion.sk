@@ -1,0 +1,29 @@
+import:
+    org.bukkit.Bukkit
+
+
+function updateResetPlayerDataCompletions():
+    set {_a} to Bukkit.getOfflinePlayers()
+    set {_a::*} to "%{_a}%" split at ", "
+    delete {%script%::resetplayerdata::completions::*}
+    set {%script%::resetplayerdata::completions::*} to {_a::*}
+
+
+on load:
+    $ thread
+    updateResetPlayerDataCompletions()
+
+
+every 10 minutes:
+    $ thread
+    updateResetPlayerDataCompletions()
+
+
+on unload:
+    delete {%script%::resetplayerdata::completions::*}
+    
+
+on tab completer for "resetplayerdata":
+    if argument at 2 is not set:
+        loop {%script%::resetplayerdata::completions::*}:
+            add loop-value to completions

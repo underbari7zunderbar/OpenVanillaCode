@@ -1,0 +1,67 @@
+command /viewinventory <text> [<text>]:
+    aliases: /invsee
+    usage: <yellow>사용법: /inventoryviewer <플레이어>
+    executable by: players
+    permission: inventoryviewer.inventory
+    trigger:
+        if arg 2 is not set:
+            set {_target} to arg 1 parsed as player
+            if {_target} is online:
+                # declare
+                loop 36 times:
+                    set {_i::%loop-value%} to slot loop-value - 1 of {_target}'s inventory
+                #set {_i::*} to all items in {_target}'s inventory
+                set {_a::1} to {_target}'s helmet
+                set {_a::2} to {_target}'s chestplate
+                set {_a::3} to {_target}'s leggings
+                set {_a::4} to {_target}'s boots
+                set {_a::8} to {_target}'s tool
+                set {_a::9} to {_target}'s off hand item
+
+                # new inventory
+                set {_c} to chest with 6 rows named "&k&k&k&l&rInventory"
+
+                # import inventory
+                loop 36 times:
+                    set slot loop-value - 1 of {_c} to {_i::%loop-value + 1%}
+
+                # descriptions
+                set slot 36 of {_c} to stone button named "↓ Helmet"
+                set slot 37 of {_c} to stone button named "↓ Chestplate"
+                set slot 38 of {_c} to stone button named "↓ Leggings"
+                set slot 39 of {_c} to stone button named "↓ Boots"
+                set slot 43 of {_c} to stone button named "↓ Main Hand"
+                set slot 44 of {_c} to stone button named "↓ Off Hand"
+
+                # armor and tools
+                loop 9 times:
+                    set slot 44 + loop-value of {_c} to {_a::%loop-value%}
+                
+                open {_c} to player
+            else:
+                send "<light red>플레이어를 찾을 수 없습니다" to command sender
+        else:
+            send "<light red>명령을 끝내는 공백이 필요합니다" to command sender
+
+
+command /viewenderchest <text> [<text>]:
+    aliases: /endersee
+    usage: <yellow>사용법: /enderchestviewer <플레이어>
+    executable by: players
+    permission: inventoryviewer.enderchest
+    trigger:
+        if arg 2 is not set:
+            set {_target} to arg 1 parsed as player
+            if {_target} is online:
+                set {_i::*} to all items in {_target}'s ender chest
+                set {_c} to chest with 3 row named "&k&k&k&l&rEnder Chest"
+                loop 27 times:
+                    set slot loop-value - 1 of {_c} to {_i::%loop-value%}
+                open {_c} to player
+        else:
+            send "<light red>명령을 끝내는 공백이 필요합니다" to command sender
+
+
+on inventory click:
+    name of player's current inventory starts with "&k&k&k&l&r"
+    cancel event

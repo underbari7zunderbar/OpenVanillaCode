@@ -1,0 +1,10 @@
+import:
+    org.bukkit.event.player.PlayerAdvancementDoneEvent
+
+
+on PlayerAdvancementDoneEvent:
+    set gamerule announceAdvancements of world of event.getPlayer() to false
+    event.message() is set
+    gamemode of event.getPlayer() is not spectator
+    loop all players in radius {social::localrange} of event.getPlayer():
+        loop-player.sendMessage(event.message())

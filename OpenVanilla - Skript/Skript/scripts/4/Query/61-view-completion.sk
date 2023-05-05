@@ -1,0 +1,57 @@
+function reloadManagementViewPlayerDataList():
+    set {_a::*} to getAllPlayersUUID()
+    loop {_a::*}:
+        add loop-value parsed as offline player's name to {_r::*}
+    loop all players:
+        add loop-player's name to {_r::*} if {_r::*} doesn't contain loop-player's name
+    set {management_view_players::*} to {_r::*}
+
+
+function reloadManagementViewConnectionDataList():
+    set {_r::*} to getConnectionsList()
+    loop all players:
+        add loop-player's ip to {_r::*} if {_r::*} doesn't contain loop-player's ip
+    set {management_view_connections::*} to {_r::*}
+
+
+on load:
+    $ thread
+    reloadManagementViewPlayerDataList()
+
+
+on load:
+    $ thread
+    reloadManagementViewConnectionDataList()
+
+
+every 10 minutes:
+    $ thread
+    reloadManagementViewPlayerDataList()
+
+
+every 10 minutes:
+    $ thread
+    reloadManagementViewConnectionDataList()
+
+
+on unload:
+    delete {management_view_players::*}
+    delete {management_view_connections::*}
+
+
+on tab completer for "viewplayerdata":
+    if argument at 2 is not set:
+        loop {management_view_players::*}:
+            add loop-value to completions
+
+
+on tab completer for "searchsubaccount":
+    if argument at 2 is not set:
+        loop {management_view_players::*}:
+            add loop-value to completions
+
+
+on tab completer for "viewconnectiondata":
+    if argument at 2 is not set:
+        loop {management_view_connections::*}:
+            add loop-value to completions

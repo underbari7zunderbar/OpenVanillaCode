@@ -1,0 +1,127 @@
+import:
+    net.kyori.adventure.text.Component
+    net.kyori.adventure.text.format.TextColor
+    net.kyori.adventure.text.format.NamedTextColor
+    net.kyori.adventure.text.event.HoverEvent
+    net.kyori.adventure.text.event.ClickEvent
+    net.kyori.adventure.audience.MessageType
+    com.destroystokyo.paper.ClientOption
+
+
+function sendChat(sender: player, mode: integer, input: text):
+    if {_sender} has permission "social.chat":
+        if {_sender}.getClientOption(ClientOption.CHAT_VISIBILITY) is ClientOption.ChatVisibility.FULL:
+            set {_uuid} to {_sender}'s uuid
+            if textIsFiltered({_input}) is false:
+                set {chat::%{_uuid}%::chat::cooldown} to 0 if {chat::%{_uuid}%::chat::cooldown} is not set
+                if {chat::%{_uuid}%::chat::cooldown} is smaller than 4:
+                    
+                    # initialize
+                    set {_defaultrecipients::*} to all players where [input has permission "social.chat"]
+
+                    # apply formats
+                    if {_sender} has permission "social.chat.color":
+                        set {_input} to arrayToString(applyColorCodes({_input}))
+                    if {_sender} has permission "social.chat.format":
+                        set {_input} to arrayToString(applyTextFormats({_input}))
+
+                    # global
+                    if {_mode} is 0:
+                        set {_recipients::*} to {_defaultrecipients::*}
+                        set {_recipients_count} to size of {_recipients::*}
+
+                        loop {_recipients::*}:
+                            loop-value.getClientOption(ClientOption.CHAT_VISIBILITY) is ClientOption.ChatVisibility.FULL
+
+                            set {_component} to Component.translatable("chat.type.text").args(Component.text({_sender}'s display name).clickEvent(ClickEvent.suggestCommand("/tell %{_sender}'s name% ")).insertion({_sender}'s name), Component.text({_input})).color(TextColor.fromHexString("##cccccc"))
+
+                            loop-value.sendMessage({_sender}, {_component}, MessageType.CHAT)
+                            delete {_component}
+
+                    # local
+                    else if {_mode} is 1:
+                        if {_sender}'s gamemode is not spectator:
+
+                            loop {_defaultrecipients::*}:
+                                loop-value is not {_sender}
+                                loop-value is alive
+                                loop-value's world is {_sender}'s world
+                                distance between {_sender} and loop-value is not greater than {social::localrange}
+                                add loop-value to {_recipients::*}
+                                loop-value's gamemode is not spectator
+                                add loop-value to {_recipients_display::*}
+                                add 1 to {_recipients_count}
+
+                            if {_recipients_count} is greater than 0:
+                                    
+                                # send (self)
+                                loop {_recipients_display::*}:
+                                    add loop-value's display name to {_recipients_name::*}
+                                set {_recipients_name::*} to sorted {_recipients_name::*}
+                                set {_local_recipients_list} to arrayToList({_recipients_name::*}, 0, "<reset>", "<gray>")
+                                set {_local_recipients_list} to "수신자: %{_local_recipients_list}%"
+                                set {_local_prefix} to Component.text("[지역]").color(NamedTextColor.DARK_GREEN).hoverEvent(HoverEvent.showText(Component.text("%{_recipients_count}%명에게 대화를 전송함").append(Component.newline()).append(Component.text({_local_recipients_list})))).clickEvent(ClickEvent.suggestCommand("/chatmode local"))
+
+                                set {_component} to Component.translatable("chat.type.team.sent").args({_local_prefix}, Component.text({_sender}'s display name).clickEvent(ClickEvent.suggestCommand("/tell %{_sender}'s name% ")).insertion({_sender}'s name), Component.text({_input}))
+
+                                {_sender}.sendMessage({_sender}, {_component}, MessageType.CHAT)
+                                delete {_local_prefix}
+                                delete {_component}
+
+                                # send (others)
+                                loop {_recipients::*}:
+                                    loop-value.getClientOption(ClientOption.CHAT_VISIBILITY) is ClientOption.ChatVisibility.FULL
+
+                                    set {_local_prefix} to Component.text("[%rounded distance between {_sender}'s location and loop-value's location%m]").color(NamedTextColor.DARK_GREEN).clickEvent(ClickEvent.suggestCommand("/chatmode local"))
+
+                                    set {_component} to Component.translatable("chat.type.team.text").args({_local_prefix}, Component.text({_sender}'s display name).clickEvent(ClickEvent.suggestCommand("/tell %{_sender}'s name% ")).insertion({_sender}'s name), Component.text({_input}))
+
+                                    loop-value.sendMessage({_sender}, {_component}, MessageType.CHAT)
+                                    delete {_local_prefix}
+                                    delete {_component}
+
+                            else:
+                                send "<light red>대화를 전송하지 못했습니다. 반경 %{social::localrange}%<light red>블록 내에 플레이어를 찾을 수 없습니다" to {_sender}
+                                send "<light blue>팁: /chatmode 명령어를 이용해 대화 모드를 전환할 수 있습니다" to {_sender}
+                                stop
+                        else:
+                            send "<light red>대화를 전송하지 못했습니다. 관전 모드에서는 지역 대화 모드를 사용할 수 없습니다" to {_sender}
+                            stop
+
+                    # unknown
+                    else:
+                        send "<light red>대화를 전송하지 못했습니다. 대화 모드가 잘못되었습니다. 관리자에게 문의하십시오" to {_sender}
+                        stop
+
+                    # log
+                    send "<cyan>[Chat]<reset> [%{_mode}%] %{_sender}% -> %{_recipients_count}%: %{_input}%" to console
+
+                    # alert
+                    #if {_input} contains "약탈" or "pvp":
+                    #    send "<yellow>참고: 약탈 및 PVP는 엄격히 금지됩니다. 자세한 사항은 <tooltip:클릭하여 실행하기><run command:/규칙>[/규칙 (클릭)]을 참고해주세요" to {_sender}
+
+                    # cooldown
+                    add 1 to {chat::%{_uuid}%::chat::cooldown}
+                    loop round(tps from last 1m * 4) times:
+                        wait a tick
+                    subtract 1 from {chat::%{_uuid}%::chat::cooldown} if {chat::%{_uuid}%::chat::cooldown} is greater than 0
+                    delete {chat::%{_uuid}%::chat::cooldown} if {chat::%{_uuid}%::chat::cooldown} is 0
+
+                else:
+                    send "<light red>대화를 너무 많이 전달했습니다. 잠시 후 다시 시도하세요" to {_sender}
+
+            else:
+                send "<light red>대화를 전송하지 못했습니다. 사용할 수 없는 문자열이 포함되어 있습니다" to {_sender}
+                if {_mode} is 0:
+                    set {_alertmsg} to "<red>%{_sender}%'s global chat message included forbidden word."
+                    loop all players:
+                        if loop-value has permission "social.log":
+                            send "<gray>[Chat] %{_alertmsg}%" to loop-value
+                            send " <gray>-> %{_input}%" to loop-value
+                    log {_alertmsg}
+                    log "-> %{_input}%"
+        else:
+            set {_component} to Component.translatable("chat.cannotSend").color(NamedTextColor.RED)
+            {_sender}.sendMessage({_component})
+    else:
+        send "<light red>대화를 전송하지 못했습니다. 대화를 전송할 권한이 없습니다" to {_sender}

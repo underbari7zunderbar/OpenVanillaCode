@@ -1,0 +1,25 @@
+options:
+    timespan: 10 hours
+    delay: 30 seconds
+
+
+on place:
+    event-world is world("world")
+    time played of player is less than {@timespan}
+    event-block is lava or tnt or fire
+    set {_u} to player's uuid
+    set {_e} to type of event-block
+    if {%script%::suspress::place::%{_u}%::%{_e}%} is not set:
+        loop all players where [input has permission "griefalert.receivelog"]:
+            send "<red>%player% placed %{_e}%" to loop-player
+        set {%script%::suspress::place::%{_u}%::%{_e}%} to true
+        wait {@delay}
+        delete {%script%::suspress::place::%{_u}%::%{_e}%}
+
+
+on death:
+    attacker is online
+    if victim is villager:
+        time played of attacker is less than {@timespan}
+        loop all players where [input has permission "griefalert.receivelog"]:
+            send "<red>%attacker% killed a villager" to loop-player

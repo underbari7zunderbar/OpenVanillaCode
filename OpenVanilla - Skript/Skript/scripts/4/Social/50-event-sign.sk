@@ -1,0 +1,4 @@
+on sign edit:
+    if textIsFiltered("%line 1%%line 2%%line 3%%line 4%") is true:
+        cancel event
+        send action bar "<light red>사용할 수 없는 문자열이 포함되어 있습니다" to player

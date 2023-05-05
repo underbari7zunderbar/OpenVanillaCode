@@ -1,0 +1,2 @@
+on load:
+    set yaml value "world-settings.world_the_end.seed-endcity" from "spigot.yml" to random integer between 1 and 99999999

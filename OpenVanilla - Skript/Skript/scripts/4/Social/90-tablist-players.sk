@@ -1,0 +1,94 @@
+import:
+    org.bukkit.Bukkit
+    org.bukkit.scoreboard.Team
+    org.bukkit.scoreboard.Scoreboard
+
+
+options:
+    refreshRate: 5 seconds
+
+
+on load:
+    set {tablist::scoreboard} to Bukkit.getScoreboardManager().getNewScoreboard()
+    loop all players:
+        loop-player.setScoreboard({tablist::scoreboard})
+on unload:
+    loop all players:
+        loop-player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard())
+    delete {tablist::scoreboard}
+    
+    
+every {@refreshRate}:
+    $ thread
+    updateAllPlayersTablist()
+
+on load:
+    wait a tick
+    updateAllPlayersTablist()
+
+on unload:
+    set all players' tablist name to ""
+
+on join:
+    set tablist name of player to "&r"
+    wait a tick
+    updatePlayerTablist(player)
+    player.setScoreboard({tablist::scoreboard})
+
+on quit:
+    {tablist::scoreboard}.getPlayerTeam(player).unregister()
+    
+on gamemode change:
+    wait a tick
+    updatePlayerTablist(player)
+
+
+function updateAllPlayersTablist():
+    loop all players:
+        unix timestamp of now - loop-player.getLastLogin() / 1000 is greater than 1
+        updatePlayerTablist(loop-value)
+
+
+function updatePlayerTablist(p: player):
+    set {_scoreboard} to {tablist::scoreboard}
+    set {_uuid} to {_p}'s uuid
+    set {_displayname} to {_p}'s displayname
+    set {_prefix} to ""
+    set {_suffix} to ""
+    set {_color} to ""
+    set {_priority} to "99"
+    
+    if {_p}'s gamemode is spectator:
+        set {_priority} to "40"
+        set {_color} to "<gray><italic>"
+    else if {afk::%{_uuid}%::isIdle} is true:
+        set {_priority} to "30"
+        set {_color} to "<##999999>"
+    else if {_p} has permission "social.tablist.staff":
+        set {_priority} to "20"
+        set {_color} to "<##ffffff>"
+    else:
+        set {_priority} to "10"
+        set {_color} to "<##cccccc>"
+
+    set {_teamname} to "%{_priority}%-%unformatted {_displayname}%"
+    set {_team} to {_scoreboard}.getTeam("%{_teamname}%")
+    if {_team} is not set:
+        set {_team} to {_scoreboard}.registerNewTeam("%{_teamname}%")
+    set {_playerteam} to {_scoreboard}.getPlayerTeam({_p})
+    if {_playerteam} is set:
+        {_playerteam} is not {_team}
+        {_playerteam}.unregister()
+    {_team}.addPlayer({_p})
+
+    if {_p}'s prefix is not "":
+        set {_prefix} to "%{_color}%%{_p}'s prefix%"
+    if {_p}'s suffix is not "":
+        set {_suffix} to "%{_color}%%{_p}'s suffix%"
+    set {_symbol} to ""
+    if {_p}'s time played is less than 10 hours:
+        {_p} doesn't have permission "social.tablist.hidenewbiewsymbol"
+        set {_symbol} to "<##a1cf17> ☻"
+        if length of {_displayname} is greater than 12:
+            set {_displayname} to "%first 12 character of {_displayname}%..."
+    set {_p}'s tablist name to formatted "%{_prefix}%%{_color}%%{_displayname}%%{_suffix}%%{_symbol}%"

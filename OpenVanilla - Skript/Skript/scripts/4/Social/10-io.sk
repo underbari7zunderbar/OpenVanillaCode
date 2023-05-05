@@ -1,0 +1,15 @@
+on load:
+    if file path "./plugins/Skript/config/social.json" is not missing:
+        copy json arrayToStringWithoutNewLine(content of file path "./plugins/Skript/config/social.json") to {social::*}
+    else:
+        log "<light red>Social configuration doesn't exist."
+
+    if file path "./plugins/Skript/config/textfilter.json" is not missing:
+        copy json arrayToStringWithoutNewLine(content of file path "./plugins/Skript/config/textfilter.json") to {textfilter::*}
+    else:
+        log "<light red>Textfilter configuration doesn't exist."
+
+
+on unload:
+    delete {social::*}
+    delete {textfilter::*}

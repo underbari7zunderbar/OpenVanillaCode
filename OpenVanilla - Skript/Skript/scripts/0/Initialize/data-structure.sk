@@ -1,0 +1,11 @@
+on load:
+    set {_path} to "./plugins/Skript/config/"
+    if dir path {_path} is missing:
+        create dir path {_path}
+    delete {_path}
+
+
+    set {_path} to "./plugins/Skript-data/"
+    if dir path {_path} is missing:
+        create dir path {_path}
+    delete {_path}

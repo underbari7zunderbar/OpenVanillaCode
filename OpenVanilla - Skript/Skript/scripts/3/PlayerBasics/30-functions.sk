@@ -1,0 +1,59 @@
+import:
+    org.bukkit.Bukkit
+
+
+function recordPlayerGeneralData(p: player):
+    set {playerbasics/%{_p}'s uuid%::general::name} to {_p}'s name
+    if uncolored {_p}'s displayname is not {_p}'s name:
+        set {playerbasics/%{_p}'s uuid%::general::displayname} to {_p}'s displayname
+    else:
+        delete {playerbasics/%{_p}'s uuid%::general::displayname}
+
+
+function recordPlayerGameplayData(p: player):
+    set {playerbasics/%{_p}'s uuid%::gameplay::location} to {_p}'s location
+
+
+function recordPlayerConnectionData(p: player):
+    set {playerbasics/%{_p}'s uuid%::connection::lastconnectedfrom} to {_p}'s ip
+    if {playerbasics/%{_p}'s uuid%::connection::connectedfrom::*} doesn't contain {_p}'s ip:
+        add {_p}'s ip to {playerbasics/%{_p}'s uuid%::connection::connectedfrom::*}
+        
+
+function recordPlayerData(p: player):
+    recordPlayerGeneralData({_p})
+    recordPlayerGameplayData({_p})
+    recordPlayerConnectionData({_p})
+    set {playerbasics/%{_p}'s uuid%::updated} to unix timestamp of now
+    if {playerbasics/%{_p}'s uuid%::created} is not set:
+        set {playerbasics/%{_p}'s uuid%::created} to unix timestamp of now
+
+
+function releasePlayerGeneralData(p: player):
+    {_p}'s name is {playerbasics/%{_p}'s uuid%::general::name}
+    {playerbasics/%{_p}'s uuid%::general::displayname} is set
+    set {_p}'s displayname to {playerbasics/%{_p}'s uuid%::general::displayname}
+
+
+function recordAllPlayersData():
+    loop all players:
+        unix timestamp of now - loop-player.getLastLogin() / 1000 is greater than 1
+        recordPlayerData(loop-player)
+
+
+function getAllPlayersUUID() :: texts:
+    if Bukkit.isPrimaryThread() is false:
+        set {_dir} to "./plugins/Skript-data/playerbasics/"
+        if directory path {_dir} is not missing:
+            loop all files of dir path {_dir}:
+                set {_path} to "%loop-value%"
+                set {_extention} to extension of loop-value
+                set {_uuid} to file name of loop-value
+                set {_uuid} to first (length of {_uuid} - (length of {_extention} + 1)) characters of {_uuid}
+                add {_uuid} to {_ret::*}
+                delete {_path}
+                delete {_extention}
+                delete {_uuid}
+            return {_ret::*}
+    else:
+        log "Function can't be executed in main thread due to security reason!"

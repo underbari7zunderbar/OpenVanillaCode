@@ -1,0 +1,58 @@
+function loadPlayerSettings(u: text):
+    set {_path} to "./plugins/Skript-data/playersettings/%{_u}%.json"
+    if file path {_path} is not missing:
+        copy json arrayToStringWithoutNewLine(content of file path {_path}) to {playersettings-players/%{_u}%::*}
+
+
+function unloadPlayerSettings(u: text):
+    delete {playersettings-players/%{_u}%::*}
+
+
+function loadPlayerSettingsTemp(u: text):
+    set {_path} to "./plugins/Skript-data/playersettings/%{_u}%.json"
+    if file path {_path} is missing:
+        create file path {_path}
+    else:
+        copy json arrayToStringWithoutNewLine(content of file path {_path}) to {playersettings-players-temp/%{_u}%::*}
+
+
+function unloadPlayerSettingsTemp(u: text):
+    delete {playersettings-players-temp/%{_u}%::*}
+
+
+function savePlayerSettings(u: text):
+    set {_path} to "./plugins/Skript-data/playersettings/%{_u}%.json"
+    set {_content} to json form of {playersettings-players/%{_u}%::*}
+    if file path {_path} is missing:
+        create file path {_path} with text {_content}
+    else:
+        set content of file path {_path} to {_content}
+
+
+on load:
+    set {_path} to "./plugins/Skript-data/playersettings/"
+    if dir path {_path} is missing:
+        create dir path {_path}
+
+
+on load:
+    set {_path} to "./plugins/Skript/config/playersettings.json"
+    if file path {_path} is not missing:
+        copy json arrayToStringWithoutNewLine(content of file path {_path}) to {playersettings::*}
+    else:
+        log "<light red>Settings configuration doesn't exist."
+
+
+on unload:
+    delete {playersettings::*}
+
+
+on join:
+    loadPlayerSettings(player's uuid)
+
+
+on quit:
+    wait a tick
+    player is offline
+    savePlayerSettings(player's uuid)
+    unloadPlayerSettings(player's uuid)

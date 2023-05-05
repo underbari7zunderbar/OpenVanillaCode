@@ -1,0 +1,11 @@
+command /scripts [<text>]:
+    permission: skript.command.scripts
+    trigger:
+        set {_scripts::*} to sorted loaded scripts
+        loop {_scripts::*}:
+            if length of loop-value is greater than 16:
+                add "%loop-value%" to {_scripts_aligned::*}
+            else:
+                add loop-value to {_scripts_aligned::*}
+        set {_output} to arrayToList({_scripts_aligned::*}, 0, "&a", "&f")
+        send "Scripts (%number of {_scripts_aligned::*}%): %{_output}%"

@@ -1,0 +1,23 @@
+function loadBannedPlayersName():
+    delete {isbanned_players::*}
+    loop {isbanned::*}:
+        add {isbanned::%loop-index%::name} to {isbanned_players::*}
+
+
+on load:
+    loadBannedPlayersName()
+
+
+every 5 second:
+    $ thread
+    loadBannedPlayersName()
+
+
+on unload:
+    delete {isbanned_players::*}
+
+
+on tab completer for "isbanned":
+    if argument at 2 is not set:
+        loop {isbanned_players::*}:
+            add loop-value to completions

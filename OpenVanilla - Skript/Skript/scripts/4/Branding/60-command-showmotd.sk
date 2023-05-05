@@ -1,0 +1,32 @@
+command /showmotd [<text>]:
+    usage: <yellow>사용법: /showmotd [enable|disable]
+    executable by: players
+    permission: branding.showmotd
+    trigger:
+        if {playersettings-players/%player's uuid%::showmotd} is set:
+            set {_mode} to {playersettings-players/%player's uuid%::showmotd}
+        else:
+            set {_mode} to {playersettings::default::showmotd}
+
+        if arg 1 is not set:
+            if {_mode} is true:
+                send "접속 시 오늘의 메시지를 표시하도록 설정되어 있습니다"
+            else:
+                send "접속 시 오늘의 메시지를 표시하지 않도록 설정되어 있습니다"
+
+        else:
+            if arg 1 is "enable":
+                set {_setmode} to true
+                set {_message} to "이제 접속 시 오늘의 메시지를 표시합니다"
+            else if arg 1 is "disable":
+                set {_setmode} to false
+                set {_message} to "이제 접속 시 오늘의 메시지를 표시하지 않습니다"
+
+            if {_setmode} is set:
+                if {_mode} is not {_setmode}:
+                    set {playersettings-players/%player's uuid%::showmotd} to {_setmode}
+                    send {_message} to command sender
+                else:
+                    send "<light red>변경 사항이 없습니다. 이미 해당 상태입니다" to command sender
+            else:
+                send "<light red>유효하지 않은 매개 변수가 포함되어 있습니다" to command sender

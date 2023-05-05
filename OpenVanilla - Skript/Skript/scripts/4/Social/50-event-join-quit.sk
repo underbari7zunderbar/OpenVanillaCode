@@ -1,0 +1,110 @@
+import:
+    net.kyori.adventure.text.Component
+    net.kyori.adventure.text.format.TextColor
+    net.kyori.adventure.text.event.ClickEvent
+    net.kyori.adventure.identity.Identity
+    net.kyori.adventure.audience.MessageType
+    java.util.UUID
+
+
+options:
+    default: ##cfb017
+    new: ##a1cf17
+    hidden: ##aaaaaa
+    
+    delaySec: 3
+
+    MessageType: MessageType.SYSTEM
+
+
+on join:
+    set join message to ""
+
+on quit:
+    set quit message to ""
+
+
+on join:
+    wait a tick
+    set {_uuid} to player's uuid
+    set {_sender} to player's name
+    set {_senderName} to player's display name
+    set {_senderIdentity} to Identity.identity(UUID.fromString({_uuid}))
+
+    if rounded unix timestamp of now - {playerbasics/%{_uuid}%::created} is greater than 5:
+        set {_first} to false
+    else if player has played before:
+        set {_first} to false
+    else:
+        set {_first} to true
+
+    if {joinmessage::%{_uuid}%::messagesent} is not true:
+        set {joinmessage::%{_uuid}%::messagesent} to true
+
+        if player has permission "social.connectionmessage":
+            if {playersettings-players/%{_uuid}%::send-join-quit-message} is set:
+                set {_sendmessage} to {playersettings-players/%{_uuid}%::send-join-quit-message}
+            else:
+                set {_sendmessage} to {playersettings::default::send-join-quit-message}
+        else:
+            set {_sendmessage} to {playersettings::default::send-join-quit-message}
+
+        if {_sendmessage} is true:
+            if {_first} is true:
+                set {_color} to "{@new}"
+            else:
+                set {_color} to "{@default}"
+        else:
+            set {_color} to "{@hidden}"
+
+        set {_namespace} to Component.text({_senderName}).clickEvent(ClickEvent.suggestCommand("/w %{_sender}% ")).insertion({_sender})
+        set {_message} to Component.translatable("multiplayer.player.joined", {_namespace}).color(TextColor.fromHexString({_color}))
+
+        if {_sendmessage} is true:
+            loop all players:
+                loop-player is not player
+                loop-player.sendMessage({_senderIdentity}, {_message}, {@MessageType})
+        else:
+            send "<yellow>접속 및 퇴장 메시지를 전송하지 않도록 설정되어 있습니다" to player
+            loop all players:
+                loop-player is not player
+                loop-player has permission "social.connectionmessage"
+                loop-player.sendMessage({_senderIdentity}, {_message}, {@MessageType})
+
+
+on quit:
+    set {_uuid} to player's uuid
+    set {_sender} to player's name
+    set {_senderName} to player's display name
+    set {_senderIdentity} to Identity.identity(UUID.fromString({_uuid}))
+
+    if player has permission "social.connectionmessage":
+        if {playersettings-players/%{_uuid}%::send-join-quit-message} is set:
+            set {_sendmessage} to {playersettings-players/%{_uuid}%::send-join-quit-message}
+        else:
+            set {_sendmessage} to {playersettings::default::send-join-quit-message}
+    else:
+        set {_sendmessage} to {playersettings::default::send-join-quit-message}
+
+    loop round(tps from last 1m * {@delaySec}) times:
+        wait a tick
+        if player is online:
+            stop
+
+    delete {joinmessage::%{_uuid}%::messagesent}
+
+    if {_sendmessage} is true:
+        set {_color} to "{@default}"
+    else:
+        set {_color} to "{@hidden}"
+    
+    set {_namespace} to Component.text({_senderName}).clickEvent(ClickEvent.suggestCommand("/w %{_sender}% ")).insertion({_sender})
+    set {_message} to Component.translatable("multiplayer.player.left", {_namespace}).color(TextColor.fromHexString({_color}))
+    
+    if {_sendmessage} is true:
+        loop all players:
+            loop-player.sendMessage({_senderIdentity}, {_message}, {@MessageType})
+    else:
+        loop all players:
+            loop-player has permission "social.connectionmessage"
+            loop-player.sendMessage({_senderIdentity}, {_message}, {@MessageType})

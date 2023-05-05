@@ -1,0 +1,7 @@
+function giveFirstJoinItems(target: player):
+    execute console command "item replace entity %{_target}% hotbar.0 with filled_map{map:1000000000}"
+    execute console command "item replace entity %{_target}% hotbar.1 with iron_axe"
+    execute console command "item replace entity %{_target}% hotbar.2 with shield"
+    execute console command "item replace entity %{_target}% hotbar.3 with apple 32"
+    wait 5 ticks
+    execute console command "place feature minecraft:bonus_chest %rounded {_target}'s x loc% %rounded {_target}'s y loc% %rounded {_target}'s z loc%"

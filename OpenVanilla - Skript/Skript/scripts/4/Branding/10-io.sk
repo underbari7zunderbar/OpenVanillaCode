@@ -1,0 +1,25 @@
+on load:
+    if file path "./plugins/Skript/config/branding.json" is not missing:
+        copy json arrayToStringWithoutNewLine(content of file path "./plugins/Skript/config/branding.json") to {branding::*}
+    else:
+        log "<light red>Branding configuration doesn't exist."
+
+    set {_path1} to "./plugins/Skript/favicon/"
+    if dir path {_path1} is missing:
+        create dir path {_path1}
+
+    loop all files of dir path "./plugins/Skript/favicon/":
+        set {_path} to "%loop-value%"
+        set {_extention} to extension of loop-value
+        set {_name} to file name of loop-value
+        set {_name} to first (length of {_name} - (length of {_extention} + 1)) characters of {_name}
+        load server icon from file {_path}
+        set {branding-favicon::%{_name}%} to the last loaded server icon
+        delete {_path}
+        delete {_extention}
+        delete {_name}
+
+
+on unload:
+    delete {branding::*}
+    delete {branding-favicon::*}

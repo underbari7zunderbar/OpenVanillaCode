@@ -1,0 +1,73 @@
+function translateDate(t: text) :: text:
+    replace all " years" with "년" in {_t}
+    replace all " year" with "년" in {_t}
+    replace all " months" with "개월" in {_t}
+    replace all " month" with "개월" in {_t}
+    replace all " weeks" with "주" in {_t}
+    replace all " week" with "주" in {_t}
+    replace all " days" with "일" in {_t}
+    replace all " day" with "일" in {_t}
+    replace all " hours" with "시간" in {_t}
+    replace all " hour" with "시간" in {_t}
+    replace all " minutes" with "분" in {_t}
+    replace all " minute" with "분" in {_t}
+    replace all " seconds" with "초" in {_t}
+    replace all " second" with "초" in {_t}
+    replace all " and " with " " in {_t}
+    return {_t}
+
+
+function secondToTimespanString(timespan: integer, skip: integer, maxunit: integer) :: string:
+    set {_remain} to {_timespan}
+    if {_skip} is less than 1:
+        set {_a} to {_remain} / 86400
+        if {_a} is not less than 1:
+            set {_remain} to {_remain} - 86400 * floor({_a})
+            set {_result::d} to floor({_a})
+        delete {_a}
+    if {_skip} is less than 2:
+        set {_a} to {_remain} / 3600
+        if {_a} is not less than 1:
+            set {_remain} to {_remain} - 3600 * floor({_a})
+            set {_result::h} to floor({_a})
+        delete {_a}
+    if {_skip} is less than 3:
+        set {_a} to {_remain} / 60
+        if {_a} is not less than 1:
+            set {_remain} to {_remain} - 60 * floor({_a})
+            set {_result::m} to floor({_a})
+        delete {_a}
+    if {_result::d} is not "":
+        set {_l} to true
+    if {_result::h} is not "":
+        set {_l} to true
+    if {_result::m} is not "":
+        set {_l} to true
+    if {_l} is true:
+        if {_remain} is 0:
+            set {_s} to false
+        else:
+            set {_s} to true
+    else:
+        set {_s} to true
+    if {_s} is true:
+        set {_result::s} to {_remain}
+    if {_result::d} is greater than 0:
+        set {_string::d} to "%{_result::d}%일"
+    if {_result::h} is greater than 0:
+        set {_string::h} to "%{_result::h}%시간"
+    if {_result::m} is greater than 0:
+        set {_string::m} to "%{_result::m}%분"
+    if {_result::s} is greater than 0:
+        set {_string::s} to "%{_result::s}%초"
+    set {_index} to 0
+    loop {_string::*}:
+        if {_index} is less than {_maxunit}:
+            if {_return} is set:
+                set {_return} to "%{_return}% %loop-value%"
+            else:
+                set {_return} to "%loop-value%"
+            add 1 to {_index}
+        else:
+            continue
+    return {_return}

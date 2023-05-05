@@ -1,0 +1,9 @@
+import:
+    org.bukkit.event.entity.PlayerDeathEvent
+
+
+on PlayerDeathEvent:
+    set gamerule showDeathMessages of world of event.getPlayer() to false
+    gamemode of event.getPlayer() is not spectator
+    loop all players in radius {social::localrange} of event.getPlayer():
+        loop-player.sendMessage(event.deathMessage())

@@ -1,0 +1,49 @@
+function updateServerListMotd():
+    delete {serverlist::*}
+
+    set {serverlist::icon} to {branding-favicon::default}
+    set {serverlist::version} to minecraft version
+
+    if {serverlist/temp::motd} is set:
+        set {serverlist::motd} to {serverlist/temp::motd}
+    else:
+        set {_line1} to formatted "%{branding::serverlist::line_1_margin}%%{branding::title::spaced}%%{branding::serverlist::line_1_margin}%"
+        set {_line2} to formatted "%{branding::serverlist::line_2_margin}%%{branding::title::description}%%{branding::serverlist::line_2_margin}%"
+        set {serverlist::motd} to "%{_line1}%%nl%%{_line2}%"
+
+
+function setServerListTempMotd(text: text, duration: integer):
+    set {serverlist/temp::motd} to {_text}
+    set {_expire} to unix timestamp of now + {_duration}
+    while {serverlist/temp::motd} is set:
+        if {_expire} is less than unix timestamp of now:
+            delete {serverlist/temp::motd}
+        wait 10 ticks
+
+
+function disableServerListTempMotd() :: boolean:
+    if {serverlist/temp::motd} is set:
+        delete {serverlist/temp::motd}
+        return true
+    else:
+        return false
+
+
+on load:
+    wait a tick
+    updateServerListMotd()
+
+
+every 1 second:
+    $ thread
+    updateServerListMotd()
+
+
+on server ping:
+    if ip is not banned:
+        clear the hover list
+        set icon to {serverlist::icon} if {serverlist::icon} is set
+        set version string to {serverlist::version} if {serverlist::version} is set
+        set motd to {serverlist::motd}
+    else:
+        cancel event

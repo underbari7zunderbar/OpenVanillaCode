@@ -1,0 +1,35 @@
+{
+    "address": "openvanilla.net",
+    "title": {
+        "normal": "<reset><white><bold>Open<#00cc70><bold>Vanilla<reset>",
+        "spaced": "<white><bold>O p e n <#00cc70><bold>V a n i l l a<reset>",
+        "description": "수정되지 않은 날것 그대로."
+    },
+    "color": [
+        "#ffffff",
+        "#00cc70",
+        "#cccccc"
+    ],
+    "link": {
+        "discord": "https://openvanilla.net/discord",
+        "minelist": "https://openvanilla.net/minelist",
+        "rules": "https://wiki.openvanilla.net/docs/이용_규칙",
+        "wiki": "https://wiki.openvanilla.net/",
+        "map": "https://map.openvanilla.net/",
+        "reportabuse": "https://wiki.openvanilla.net/docs/부정_이용_신고",
+        "help": "https://wiki.openvanilla.net/docs/도움말",
+        "uptimerobot": "https://stats.uptimerobot.com/wvrjnIvr2Y"
+    },
+    "tablist": {
+        "title_side_margin": "                 ",
+        "tips": [
+            "<#cccccc>서버가 마음에 드시나요? <white><bold>/추천<reset><#cccccc> 한 번씩 부탁드려요!<reset>",
+            "<#cccccc>불편을 주는 플레이어가 있나요? 언제든 <white><bold>/신고<reset><#cccccc>해주세요<reset>",
+            "<#cccccc>궁금한 점이 있으신가요? <white><bold>/위키<reset><#cccccc>를 확인해보세요<reset>"
+        ]
+    },
+    "serverlist": {
+        "line_1_margin": "<bold>    <reset>         ",
+        "line_2_margin": "<bold>            <reset> "
+    }
+}

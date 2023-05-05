@@ -1,0 +1,44 @@
+import:
+    org.bukkit.event.entity.ExplosionPrimeEvent
+    com.destroystokyo.paper.event.block.TNTPrimeEvent
+    org.bukkit.event.block.BlockSpreadEvent
+    org.bukkit.event.block.BlockBurnEvent
+    org.bukkit.event.block.BlockExplodeEvent
+    org.bukkit.event.entity.EntityDamageEvent
+
+
+on ExplosionPrimeEvent:
+    event.getEntity().getWorld() is world("world_the_end")
+    event.getEntity().getLocation().getY() is not greater than 20
+    cancel event
+
+
+on TNTPrimeEvent:
+    event.getBlock().getWorld() is world("world_the_end")
+    event.getBlock().getLocation().getY() is not greater than 20
+    cancel event
+
+
+on BlockSpreadEvent:
+    event.getBlock().getWorld() is world("world_the_end")
+    event.getBlock().getLocation().getY() is not greater than 20
+    cancel event
+
+
+on BlockBurnEvent:
+    event.getBlock().getWorld() is world("world_the_end")
+    event.getBlock().getLocation().getY() is not greater than 20
+    cancel event
+
+
+on BlockExplodeEvent:
+    event.getBlock().getWorld() is world("world_the_end")
+    event.getBlock().getLocation().getY() is not greater than 20
+    cancel event
+
+
+on EntityDamageEvent:
+    event.getEntity().getWorld() is world("world_the_end")
+    event.getEntity().getLocation().getY() is not greater than 20
+    event.getCause() is EntityDamageEvent.DamageCause.BLOCK_EXPLOSION
+    cancel event

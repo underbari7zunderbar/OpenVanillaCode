@@ -1,0 +1,36 @@
+import:
+    org.bukkit.Material
+    org.bukkit.entity.EntityType
+    io.papermc.paper.event.entity.EntityMoveEvent
+
+
+on EntityMoveEvent:
+    set {_entitytype} to event.getEntityType()
+    if {_entitytype} is EntityType.BOAT:
+        set {_continue} to true
+    else if {_entitytype} is EntityType.CHEST_BOAT:
+        set {_continue} to true
+    else if {_entitytype} is EntityType.MINECART:
+        set {_continue} to true
+    else if {_entitytype} is EntityType.MINECART_CHEST:
+        set {_continue} to true
+    else if {_entitytype} is EntityType.MINECART_COMMAND:
+        set {_continue} to true
+    else if {_entitytype} is EntityType.MINECART_FURNACE:
+        set {_continue} to true
+    else if {_entitytype} is EntityType.MINECART_HOPPER:
+        set {_continue} to true
+    else if {_entitytype} is EntityType.MINECART_MOB_SPAWNER:
+        set {_continue} to true
+    else if {_entitytype} is EntityType.MINECART_TNT:
+        set {_continue} to true
+    {_continue} is true
+    delete {_continue}
+    set {_location} to event.getTo()
+    set {_type} to {_location}.getBlock().getType() 
+    if {_type} is Material.SOUL_SAND:
+        set {_continue} to true
+    else if {_type} is Material.SOUL_SOIL:
+        set {_continue} to true
+    {_continue} is true
+    cancel event

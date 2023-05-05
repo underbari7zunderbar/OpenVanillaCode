@@ -1,0 +1,19 @@
+on swap hand items:
+    tool is light
+    player is sneaking
+    cancel event
+    set {_c} to chest with 2 rows named "&k&l&k&l&rBlockStateTag:{level:<##777777><underline>HERE<reset>}"
+    open {_c} to player
+    set {_s0} to slot 0 of player's inventory
+    loop 16 times:
+        execute console command "/item replace entity %player% hotbar.0 with light{BlockStateTag:{level:%loop-value - 1%}}"
+        set slot loop-value - 1 of player's current inventory to slot 0 of player's inventory named "&r%loop-value - 1%"
+    set slot 0 of player's inventory to {_s0}
+
+
+on inventory click:
+    name of player's current inventory starts with "&k&l&k&l&r"
+    cancel event
+    clicked inventory is player's current inventory
+    clicked slot is light
+    execute console command "/item replace entity %player% weapon.mainhand with minecraft:light{BlockStateTag:{level:%uncolored name of clicked slot%}} %item number of tool%"

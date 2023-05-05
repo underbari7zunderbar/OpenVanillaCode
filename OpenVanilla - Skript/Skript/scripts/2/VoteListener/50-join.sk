@@ -1,0 +1,6 @@
+on join:
+    wait 3 seconds
+    set {_uuid} to player's uuid
+    if {votelistener/players::%{_uuid}%::votedwhenoffline} is true:
+        delete {votelistener/players::%{_uuid}%::votedwhenoffline}
+        #giveVoteReward(player)

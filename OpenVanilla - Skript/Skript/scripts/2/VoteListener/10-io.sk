@@ -1,0 +1,31 @@
+function reloadVoteListenerConfiguration():
+    if file path "./plugins/Skript/config/votelistener.yml" is not missing:
+        delete {votelistener::*}
+        set {votelistener::rewards::*} to yaml list "rewards" from "plugins/Skript/config/votelistener.yml"
+    else:
+        log "<light red>VoteListener configuration doesn't exist."
+
+
+on load:
+    reloadVoteListenerConfiguration()
+
+    set {_path} to "./plugins/Skript-data/votelistener/"
+    if dir path {_path} is missing:
+        create dir path {_path}
+
+    set {_path} to "./plugins/Skript-data/votelistener/players.json"
+    if file path {_path} is missing:
+        create file path {_path}
+    else:
+        copy json arrayToStringWithoutNewLine(content of file path {_path}) to {votelistener/players::*}
+
+
+every 27 minutes:
+    set content of file path "./plugins/Skript-data/votelistener/players.json" to json form of {votelistener/players::*}
+
+
+on unload:
+    set content of file path "./plugins/Skript-data/votelistener/players.json" to json form of {votelistener/players::*}
+    delete {votelistener::*}
+    delete {votelistener/temp::*}
+    delete {votelistener/players::*}

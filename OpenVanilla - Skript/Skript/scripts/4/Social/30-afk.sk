@@ -1,0 +1,54 @@
+import:
+    io.papermc.paper.event.player.AsyncChatEvent
+    org.bukkit.event.player.PlayerCommandPreprocessEvent
+
+
+options:
+    refreshRate: 1 second
+    timeToIdleState: 15 minutes
+
+
+function updateLastActivityPlayerIsMoved(p: player):
+    set {_uuid} to {_p}'s uuid
+    set {_currentloc} to vector({_p}'s x loc, {_p}'s y loc, {_p}'s z loc)
+    if {afk::%{_uuid}%::previousloc} is not {_currentloc}:
+        set {afk::%{_uuid}%::lastactivity} to now
+    set {afk::%{_uuid}%::previousloc} to {_currentloc}
+
+
+function updatePlayerIdleState(p: player):
+    {_p}'s gamemode is not spectator
+    set {_uuid} to {_p}'s uuid
+    if difference between {afk::%{_uuid}%::lastactivity} and now is greater than {@timeToIdleState}:
+        set {afk::%{_uuid}%::isIdle} to true
+    else:
+        set {afk::%{_uuid}%::isIdle} to false
+
+
+function updateAllPlayersIdleState():
+    loop all players:
+        updateLastActivityPlayerIsMoved(loop-player)
+        updatePlayerIdleState(loop-player)
+
+
+on load:
+    $ thread
+    updateAllPlayersIdleState()
+
+
+every {@refreshRate}:
+    $ thread
+    updateAllPlayersIdleState()
+
+
+on join:
+    set {afk::%player's uuid%::lastactivity} to now
+    updatePlayerIdleState(player)
+
+    
+on AsyncChatEvent:
+    set {afk::%event.getPlayer()'s uuid%::lastactivity} to now
+
+
+on PlayerCommandPreprocessEvent:
+    set {afk::%event.getPlayer()'s uuid%::lastactivity} to now

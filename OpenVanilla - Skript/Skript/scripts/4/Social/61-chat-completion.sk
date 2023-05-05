@@ -1,0 +1,4 @@
+on tab completer for "chatmode":
+    if argument at 2 is not set:
+        add "global" to completions
+        add "local" to completions

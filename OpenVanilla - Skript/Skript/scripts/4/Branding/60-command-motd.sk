@@ -1,0 +1,5 @@
+command /motd [<text>]:
+    executable by: players
+    permission: branding.motd
+    trigger:
+        sendMotd(sender)
